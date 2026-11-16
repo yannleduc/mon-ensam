@@ -1,7 +1,7 @@
 # Mon ENSAM
 
 Appli personnelle de cours et de révisions, aux couleurs d'Arts et Métiers (violet `#80276C`, jaune `#FFA300`).
-Elle tourne dans Safari sur Mac et iPad, s'installe comme une vraie appli et ne coûte rien.
+Elle tourne dans Safari sur Mac, iPad et iPhone, s'installe comme une vraie appli et ne coûte rien.
 
 - **Cours** : dépose tes PDF (ou PowerPoint, Word, images), rangés par matière, avec visionneuse intégrée.
 - **Fiches automatiques** : Claude écrit pour chaque cours une fiche de révision (formules en LaTeX), un résumé,
@@ -38,7 +38,8 @@ Claude passe régulièrement pour traiter ce qui est « en attente ».
 5. **Emploi du temps** : colle le lien ICS dans Réglages → *Enregistrer et mettre à jour*.
 6. **Tâche Claude** : demande à Claude de créer la tâche planifiée qui traite tes cours (la consigne est
    dans Réglages → Traitement par Claude).
-7. **Installer** : iPad → Safari → Partager → *Sur l'écran d'accueil*. Mac → Safari → Fichier → *Ajouter au Dock*.
+7. **Installer** : iPhone / iPad → Safari → Partager → *Sur l'écran d'accueil*. Mac → Safari → Fichier → *Ajouter au Dock*.
+   Sur chaque nouvel appareil, refais l'étape 4 (dépôt + jeton) dans Réglages.
 
 Pour découvrir l'appli sans rien configurer : Réglages → *Essai local* → *Charger des données d'exemple*.
 
@@ -56,5 +57,6 @@ Aucune étape de compilation : HTML, CSS et modules JavaScript servis tels quels
 | `data-template/` | fichiers copiés dans le dépôt de données par « Préparer le dépôt » (consignes Claude, script, Action) |
 | `vendor/` | marked, DOMPurify, KaTeX, ical.js, pdf.js (copies locales) |
 | `sw.js` | fonctionnement hors-ligne |
+| `quiz-mmc/` | mini-appli autonome « Quiz MMC » (QCM façon Wooclap + fiche + PDF), hors-ligne, sans compte |
 
 Le jeton GitHub reste dans le navigateur de chaque appareil (jamais dans le dépôt).

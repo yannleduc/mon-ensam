@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2B5CF6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Quiz MMC">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Fiche MMC</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script src="vendor/katex/katex.min.js"></script>
+<script src="vendor/katex/contrib/auto-render.min.js"></script>
+<style>
+  @page { size: A4; margin: 14mm 13mm 15mm 13mm; }
+  :root{
+    --c1:#6B1F4F; --c2:#8A2D65; --acc:#E2742F; --ink:#1d1f2b; --muted:#5d6275;
+    --bg1:#F7EEF3; --bg2:#FFF4EA; --line:#E4D3DD; --ok:#2F8F5B; --ko:#C33055;
+  }
+  *{box-sizing:border-box}
+  body{font-family:Inter, "DejaVu Sans", sans-serif; color:var(--ink); font-size:9.6pt; line-height:1.42; margin:0;}
+  .katex{font-size:1.04em}
+  .cover{background:linear-gradient(120deg,var(--c1),var(--c2) 60%,var(--acc));color:#fff;border-radius:10px;padding:14px 18px 13px;margin-bottom:10px}
+  .cover .k{font-size:8.5pt;letter-spacing:1.4px;text-transform:uppercase;opacity:.85;font-weight:600}
+  .cover h1{margin:3px 0 4px;font-size:20pt;line-height:1.15;font-weight:800}
+  .cover .sub{font-size:9.5pt;opacity:.92}
+  .toc{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:9px}
+  .toc span{background:rgba(255,255,255,.18);border-radius:999px;padding:2px 9px;font-size:8pt;font-weight:600}
+  h2{font-size:12.5pt;color:var(--c1);margin:13px 0 6px;display:flex;align-items:center;gap:8px;break-after:avoid;border-bottom:2px solid var(--line);padding-bottom:4px}
+  h2 .n{background:var(--c1);color:#fff;border-radius:6px;min-width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5pt}
+  h3{font-size:10.3pt;color:var(--c2);margin:9px 0 4px;break-after:avoid}
+  p{margin:4px 0}
+  ul,ol{margin:3px 0 5px;padding-left:17px}
+  li{margin:1.5px 0}
+  .sec{break-inside:auto}
+  .box{border-radius:8px;padding:7px 11px;margin:6px 0;break-inside:avoid}
+  .eq{background:var(--bg1);border-left:4px solid var(--c1)}
+  .key{background:var(--bg2);border-left:4px solid var(--acc)}
+  .key b.t, .eq b.t{color:var(--c1);display:block;font-size:8.6pt;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+  .key b.t{color:#B4561B}
+  .trap{background:#FDEEF1;border-left:4px solid var(--ko)}
+  .trap b.t{color:var(--ko);display:block;font-size:8.6pt;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+  table{width:100%;border-collapse:separate;border-spacing:0;margin:6px 0;font-size:8.9pt;break-inside:avoid;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  th{background:var(--c1);color:#fff;text-align:left;padding:5px 7px;font-weight:700;font-size:8.6pt}
+  td{padding:4.5px 7px;border-top:1px solid var(--line);vertical-align:top}
+  tr:nth-child(even) td{background:#FBF7F9}
+  td.ok{color:var(--ok);font-weight:600}
+  td.ko{color:var(--ko)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .two > div{break-inside:avoid}
+  .res{font-weight:700;color:var(--c1)}
+  .muted{color:var(--muted)}
+  .center{text-align:center}
+  .pb{break-before:page}
+  .foot{margin-top:12px;font-size:7.8pt;color:var(--muted);border-top:1px solid var(--line);padding-top:5px}
+  svg text{font-family:Inter, sans-serif}
+
+  @media screen{
+    html{-webkit-text-size-adjust:100%;background:#F5F6FA}
+    body{font-size:15px;line-height:1.5;max-width:820px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));background:#F5F6FA}
+    .cover{margin-top:4px}
+    .cover h1{font-size:24px}
+    .toc span a{color:#fff;text-decoration:none}
+    h2{font-size:18px;scroll-margin-top:12px}
+    h3{font-size:15.5px}
+    table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;font-size:13.5px;background:#fff}
+    th{font-size:12.5px;white-space:nowrap}
+    .box{background-clip:padding-box}
+    .katex-display{overflow-x:auto;overflow-y:hidden;padding:4px 0}
+    .pb{break-before:auto}
+    .foot{font-size:12px}
+    .tabbar{display:flex}
+  }
+  @media screen and (max-width:700px){ .two{grid-template-columns:1fr} td .katex,th .katex{white-space:nowrap} td{min-width:92px} td:first-child{min-width:110px} }
+  @media print{ .tabbar{display:none!important} }
+  .tabbar{display:none;position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #E3E6EF;padding:6px 0 calc(6px + env(safe-area-inset-bottom));justify-content:space-around;z-index:10;font-family:Inter,system-ui,sans-serif}
+  .tabbar a{flex:1;text-align:center;text-decoration:none;color:#6B7090;font-size:11.5px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .tabbar a .i{font-size:21px;line-height:1}
+  .tabbar a.on{color:#2B5CF6}
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="k">Arts et Métiers · MDSI · Mécanique des milieux continus · 2026-2027</div>
+  <h1>Fiche de révision MMC</h1>
+  <div class="sub">Formulation forte, méthode des déplacements (Navier) et formulation faible (PTV, PPV, énergie) — cours de B. Moya</div>
+  <div class="toc"><span><a href="#s1">1 · Équations</a></span><span><a href="#s2">2 · Conditions aux limites</a></span><span><a href="#s3">3 · Modèles plans</a></span><span><a href="#s4">4 · Navier / Beltrami</a></span><span><a href="#s5">5 · Problèmes 1D</a></span><span><a href="#s6">6 · Forme faible</a></span><span><a href="#s7">7 · Exercices corrigés</a></span><span><a href="#s8">8 · Pièges QCM</a></span></div>
+</div>
+
+<!-- 1 -->
+<div class="sec">
+<h2 id="s1"><span class="n">1</span> Les 15 équations de l'élasticité</h2>
+<p>Résoudre un problème de MMC = trouver $\mathbf u(\mathbf x)$, puis $\varepsilon(\mathbf x)$ et $\sigma(\mathbf x)$ dans tout $\Omega$, en réunissant <b>cinématique + équilibre + comportement + conditions aux limites</b>.</p>
+<p class="muted"><b>Hypothèses du cours :</b> solide continu, homogène, isotrope, élastique linéaire · petites transformations ($\|\nabla u\|\ll 1$) · chargement faible, configuration non déformée · équilibre quasi statique. À vérifier avant ET après le calcul.</p>
+
+<table>
+<tr><th>Bloc</th><th>Équation</th><th>Nb éq.</th><th>Inconnues</th></tr>
+<tr><td>Cinématique (compatibilité)</td><td>$\varepsilon=\tfrac12(\nabla u+\nabla u^T)$</td><td>6</td><td>$u$ (3)</td></tr>
+<tr><td>Équilibre local</td><td>$\operatorname{div}\sigma+f=0$ (statique) · $=\rho\ddot u$ (dynamique)</td><td>3</td><td>$\sigma$ (6)</td></tr>
+<tr><td>Comportement (Hooke / Lamé)</td><td>$\sigma=\lambda\,\mathrm{tr}(\varepsilon)\,I+2\mu\,\varepsilon$</td><td>6</td><td>$\varepsilon$ (6)</td></tr>
+</table>
+<p><b>Bilan :</b> 15 inconnues pour 15 équations. L'équilibre seul ne suffit pas : 3 équations pour 6 composantes de $\sigma$.</p>
+
+<div class="two">
+<div class="box eq"><b class="t">Cinématique</b>
+$dx = F\,dX$ &nbsp;·&nbsp; $H=\operatorname{grad}u = F-I$<br>
+$\varepsilon=\tfrac12(H+H^T)$ (déformation) &nbsp;·&nbsp; $\omega=\tfrac12(H-H^T)$ (rotation)
+</div>
+<div class="box eq"><b class="t">Équilibre et Cauchy</b>
+$\dfrac{\partial\sigma_{ij}}{\partial x_j}+f_i=0$ &nbsp;·&nbsp; $t=\sigma\cdot n$<br>
+<span class="muted">$f$ en N/m³ (ex. $\rho g$) ; $t$ et $\sigma$ en Pa.</span>
+</div>
+</div>
+
+<div class="box eq"><b class="t">Loi de Hooke isotrope (directe et inverse)</b>
+$$\sigma=\lambda\,\mathrm{tr}(\varepsilon)\,I+2\mu\,\varepsilon \qquad\qquad \varepsilon=\frac{1+\nu}{E}\,\sigma-\frac{\nu}{E}\,\mathrm{tr}(\sigma)\,I$$
+$$\mu=G=\frac{E}{2(1+\nu)}\qquad \lambda=\frac{E\nu}{(1+\nu)(1-2\nu)}\qquad 3K=3\lambda+2\mu=\frac{E}{1-2\nu}$$
+</div>
+<div class="box trap"><b class="t">Piège</b>$\sigma=E\varepsilon$ n'est valable qu'en traction 1D, jamais « dans toutes les situations 3D ».</div>
+</div>
+
+<!-- 2 -->
+<div class="sec">
+<h2 id="s2"><span class="n">2</span> Conditions aux limites</h2>
+<p>On partage la frontière $\partial\Omega=\Gamma_u\cup\Gamma_t$, $\Gamma_u\cap\Gamma_t=\varnothing$ (par composante si besoin). <b>En un point et dans une direction : soit le déplacement, soit l'effort, jamais les deux.</b></p>
+<table>
+<tr><th>Type</th><th>Sur</th><th>Condition</th><th>Nom</th></tr>
+<tr><td><b>Dirichlet</b></td><td>$\Gamma_u$ ($\Gamma_D$)</td><td>$u=\bar u$</td><td>Essentielle (cinématique)</td></tr>
+<tr><td><b>Neumann</b></td><td>$\Gamma_t$ ($\Gamma_N$)</td><td>$\sigma\cdot n=\bar t$</td><td>Naturelle (en effort)</td></tr>
+<tr><td>Mixte</td><td>même point</td><td>$u$ imposé dans 1 direction + traction dans les 2 autres</td><td>ex. appui glissant</td></tr>
+<tr><td>Dynamique</td><td>—</td><td>$u(x,0)$ et $\dot u(x,0)$</td><td>Conditions initiales</td></tr>
+</table>
+
+<h3>Cas types à connaître</h3>
+<table>
+<tr><th style="width:36%">Situation</th><th>Conditions</th></tr>
+<tr><td>Face libre</td><td>$t=\sigma\cdot n=0$ sur la face (pas $\sigma=0$ partout, pas $u=0$)</td></tr>
+<tr><td>Encastrement en $x=0$</td><td>$u(0)=0$ (Dirichlet)</td></tr>
+<tr><td>Extrémité libre d'une barre</td><td>$N(L)=EA\,u'(L)=0$ (Neumann)</td></tr>
+<tr><td>Force $F$ en bout de barre</td><td>$N(L)=F$, soit $\sigma(L)=F/A$ (Neumann)</td></tr>
+<tr><td>Appui glissant ($u_x=0$ bord gauche)</td><td>$u_x=0$ + traction tangentielle nulle $\sigma_{xy}=0$</td></tr>
+<tr><td>Plateau rigide <b>lubrifié</b> (normale $e_3$)</td><td>$u_3$ imposé ; $\sigma_{13}=\sigma_{23}=0$ ; $\sigma_{33}\neq0$ ; $u_1,u_2$ <b>libres</b></td></tr>
+<tr><td>Plateau rigide <b>adhérent</b></td><td>$u_1=u_2=0$, $u_3$ imposé ; $\sigma_{13},\sigma_{23}\neq0$</td></tr>
+<tr><td>Contact $r=R$ avec bague rigide sans frottement</td><td>$u_r=0$ et $\sigma_{r\theta}=\sigma_{rz}=0$ ($\sigma_{rr}\neq0$ : pression de contact)</td></tr>
+<tr><td>Pression $p$</td><td>$t=-p\,n$</td></tr>
+<tr><td>Lopin écrasé entre $z=0$ et $z=h$ (descente $U$)</td><td>$u_z(x,y,0)=0$, $u_z(x,y,h)=-U$ ; faces latérales libres $\sigma\cdot n=0$</td></tr>
+</table>
+
+<div class="box key"><b class="t">Unicité et modes rigides</b>
+<ul>
+<li>Problème bien posé (élasticité linéaire stable + CL adaptées) ⇒ solution unique.</li>
+<li>En 3D : <b>6 modes rigides</b> (3 translations + 3 rotations), qui ne changent ni $\varepsilon$ ni $\sigma$.</li>
+<li>Efforts seuls imposés ⇒ $u$ défini à un mouvement rigide près, et résultante + moment extérieurs doivent être nuls.</li>
+</ul>
+</div>
+</div>
+
+<!-- 3 -->
+<div class="sec">
+<h2 id="s3"><span class="n">3</span> Contraintes planes vs déformations planes</h2>
+<div class="box trap"><b class="t">Règle d'or</b>Contrainte nulle hors plan n'implique pas déformation nulle hors plan, et réciproquement.</div>
+<table>
+<tr><th></th><th>Contraintes planes (plane stress)</th><th>Déformations planes (plane strain)</th></tr>
+<tr><td><b>Géométrie</b></td><td>Pièce mince chargée dans son plan ($e/L\lesssim0{,}1$)</td><td>Pièce très longue, $u_3$ bloqué ($L/\text{section}\gtrsim5$–$10$)</td></tr>
+<tr><td><b>Nul</b></td><td>$\sigma_{33}=\sigma_{13}=\sigma_{23}=0$</td><td>$\varepsilon_{33}=\varepsilon_{13}=\varepsilon_{23}=0$</td></tr>
+<tr><td><b>Non nul</b></td><td>$\varepsilon_{33}=-\dfrac{\nu}{E}(\sigma_{11}+\sigma_{22})$</td><td>$\sigma_{33}=\nu(\sigma_{11}+\sigma_{22})$</td></tr>
+<tr><td><b>Exemples</b></td><td>Tôle, plaque percée, panneau aéro, carrosserie</td><td>Tunnel, barrage, mur de soutènement, cylindre long</td></tr>
+</table>
+<div class="box eq"><b class="t">Hooke en contraintes planes</b>
+$$\sigma_{xx}=\frac{E}{1-\nu^2}(\varepsilon_{xx}+\nu\varepsilon_{yy})\qquad \sigma_{yy}=\frac{E}{1-\nu^2}(\varepsilon_{yy}+\nu\varepsilon_{xx})\qquad \sigma_{xy}=\frac{E}{1+\nu}\varepsilon_{xy}$$
+</div>
+<p><b>Exercice CM1</b> ($E=210$ GPa, $\nu=0{,}30$, $\sigma_{11}=100$ MPa, $\sigma_{22}=0$) : contraintes planes $\varepsilon_{33}=-0{,}3\times100/210\,000=$ <span class="res">$-1{,}43\times10^{-4}$</span> ; déformations planes $\sigma_{33}=0{,}3\times100=$ <span class="res">30 MPa</span>.</p>
+</div>
+
+<!-- 4 -->
+<div class="sec">
+<h2 id="s4" class="pb"><span class="n">4</span> Formulation forte : Navier (déplacements) ou Beltrami (contraintes)</h2>
+<p>La <b>formulation forte</b> = les équations écrites point par point dans $\Omega$ + les CL sur $\partial\Omega$ (équilibre, cinématique, comportement, Dirichlet, Neumann). Elle exige des champs réguliers (dérivées secondes de $u$).</p>
+<table>
+<tr><th></th><th>Méthode des déplacements (Navier)</th><th>Méthode des contraintes (Beltrami–Michell)</th></tr>
+<tr><td><b>Inconnue</b></td><td>$u$ (3 composantes)</td><td>$\sigma$ (6 composantes)</td></tr>
+<tr><td><b>Enchaînement</b></td><td>$u\to\varepsilon(u)\to\sigma$ (Hooke) $\to$ injecté dans l'équilibre</td><td>$\sigma$ vérifie l'équilibre $\to\varepsilon$ (Hooke inverse) $\to$ injecté dans la compatibilité</td></tr>
+<tr><td><b>Automatique</b></td><td>Compatibilité des déformations</td><td>Équilibre</td></tr>
+<tr><td><b>À vérifier</b></td><td>Navier + CL</td><td>Compatibilité (Saint-Venant) + CL</td></tr>
+</table>
+<div class="box eq"><b class="t">Équations de Navier–Lamé (statique, homogène isotrope)</b>
+$$\mu\,\Delta\mathbf u+(\lambda+\mu)\,\nabla(\nabla\!\cdot\mathbf u)+\mathbf f=\mathbf 0
+\quad\Longleftrightarrow\quad G\,\nabla^2\mathbf u+(\lambda+G)\,\nabla(\nabla\!\cdot\mathbf u)+\mathbf b=\mathbf 0$$
+<span class="muted">En dynamique, le second membre devient $\rho\ddot{\mathbf u}$. Navier = « 3 formules en une ».</span>
+</div>
+<div class="two">
+<div class="box key"><b class="t">Stratégie semi-inverse</b>
+Postuler $u$ inspiré des CL en déplacement et des symétries → vérifier Navier → vérifier toutes les CL. Unicité ⇒ c'est <b>la</b> solution. Les CL en effort deviennent des conditions sur les dérivées de $u$.
+</div>
+<div class="box key"><b class="t">Quand utiliser la forme forte</b>
+Cas 1D, géométries régulières, solution analytique exacte ; différences finies, méthodes spectrales, collocation sans maillage. <b>Limites :</b> géométries complexes, angles, charges concentrées, singularités → forme faible.
+</div>
+</div>
+</div>
+
+<!-- 5 -->
+<div class="sec">
+<h2 id="s5"><span class="n">5</span> Problèmes 1D (barre en traction)</h2>
+<div class="two">
+<div class="box eq"><b class="t">Équation de la barre</b>
+$N=EA\,u'$ &nbsp;·&nbsp; $N'+q=0$ avec $q=Af$ (N/m)
+$$(EA\,u')'+Af=0\ \Rightarrow\ E\,u''+f=0$$
+</div>
+<div class="box key"><b class="t">Méthode en 5 étapes</b>
+<ol style="margin:0;padding-left:16px">
+<li>Définir $x\in[0,L]$, chargements, $E$, $A$.</li>
+<li>Écrire $N=EAu'$ et $N'+q=0$.</li>
+<li>CL : $u(0)=0$ (D), $N(L)=0$ ou $F$ (N).</li>
+<li>Intégrer deux fois, fixer les constantes.</li>
+<li>$\varepsilon=u'$, $\sigma=Eu'$ ; vérifier équilibre, unités, CL.</li>
+</ol>
+</div>
+</div>
+<table>
+<tr><th>Cas</th><th>CL</th><th>$u(x)$</th><th>$\sigma(x)$</th><th>Maximum</th></tr>
+<tr><td>Force $F$ en bout</td><td>$u(0)=0$, $N(L)=F$</td><td>$\dfrac{Fx}{EA}$</td><td>$F/A$ (uniforme)</td><td>$u(L)=\dfrac{FL}{EA}$</td></tr>
+<tr><td>Force volumique $f$, bout libre</td><td>$u(0)=0$, $N(L)=0$</td><td>$\dfrac{f}{E}\Big(Lx-\dfrac{x^2}{2}\Big)$</td><td>$f(L-x)$</td><td>$u(L)=\dfrac{fL^2}{2E}$ ; $\sigma(0)=fL$</td></tr>
+<tr><td>Force volumique $f$, 2 bouts encastrés</td><td>$u(0)=u(L)=0$</td><td>$\dfrac{f}{2E}\,x(L-x)$</td><td>$f\Big(\dfrac L2-x\Big)$</td><td>$u(\tfrac L2)=\dfrac{fL^2}{8E}$ ; $|\sigma|_{max}=\dfrac{fL}{2}$</td></tr>
+</table>
+<p><b>Application CM2</b> ($L=2$ m, $E=200$ GPa, $A=100$ mm², $f=10^5$ N/m³, bout libre) : $q=10$ N/m, <span class="res">$u(L)=1\ \mu$m</span>, <span class="res">$\sigma(0)=0{,}20$ MPa</span>. Barre suspendue sous son poids ($f=\rho g$) : $u(L)=\rho gL^2/(2E)$.</p>
+</div>
+
+<!-- 6 -->
+<div class="sec">
+<h2 id="s6"><span class="n">6</span> Formulation faible (principes variationnels)</h2>
+<p>Même équilibre, écrit sous forme <b>intégrale (globale)</b> : travail virtuel interne = travail virtuel externe pour tout déplacement virtuel admissible. Équivalente à la forme forte sous hypothèses de régularité ; « forte / faible » = exigence mathématique, pas une échelle.</p>
+
+<div class="box key"><b class="t">Construction en 3 gestes</b>
+<ol style="margin:0;padding-left:16px">
+<li>Multiplier $\operatorname{div}\sigma+f=0$ par un déplacement virtuel $\delta u$ et intégrer sur $\Omega$.</li>
+<li>Intégrer par parties (divergence) ; $\sigma$ symétrique ⇒ $\sigma:\nabla\delta u=\sigma:\delta\varepsilon$.</li>
+<li>Utiliser les CL : $\sigma n=\bar t$ sur $\Gamma_t$ et $\delta u=0$ sur $\Gamma_u$.</li>
+</ol>
+$$\int_\Omega(\nabla\!\cdot\sigma)\cdot\delta u\,d\Omega=\int_{\partial\Omega}(\sigma n)\cdot\delta u\,d\Gamma-\int_\Omega\sigma:\nabla\delta u\,d\Omega$$
+</div>
+
+<div class="box eq"><b class="t">Principe des travaux virtuels (PTV), statique</b>
+$$\underbrace{\int_\Omega\sigma:\delta\varepsilon\,d\Omega}_{\delta W_{int}}=\underbrace{\int_\Omega b\cdot\delta u\,d\Omega+\int_{\Gamma_t}\bar t\cdot\delta u\,d\Gamma}_{\delta W_{ext}}\qquad\forall\,\delta u\ \text{admissible}\ (\delta u=0\ \text{sur}\ \Gamma_u)$$
+</div>
+
+<div class="two">
+<div class="box key"><b class="t">À retenir sur δu</b>
+<ul style="margin:0">
+<li>$\delta u=0$ sur $\Gamma_D$ (et non $\delta u=\bar u$).</li>
+<li>$\delta u$ n'est <b>pas</b> la solution : c'est une fonction test.</li>
+<li>Neumann apparaît seule dans $\delta W_{ext}$ ⇒ <b>naturelle</b> ; Dirichlet imposée à part ⇒ <b>essentielle</b>.</li>
+<li>L'IPP abaisse l'ordre des dérivées requises sur $u$ (1<sup>res</sup> au lieu de 2<sup>ndes</sup>).</li>
+</ul>
+</div>
+<div class="box key"><b class="t">PPV · Énergie · MEF</b>
+<ul style="margin:0">
+<li><b>PPV</b> : vitesse virtuelle $v^*$, $P^*_{int}=P^*_{ext}+P^*_{inertie}$ ⇒ équilibre <b>dynamique</b>.</li>
+<li><b>Variationnel</b> : minimiser une énergie (potentiel), $\delta\Pi(u)=0$. <b>Travaux virtuels</b> : égalité travail interne / externe.</li>
+<li><b>MEF</b> : basée directement sur la forme faible, projetée sur un espace discret de fonctions test.</li>
+</ul>
+</div>
+</div>
+
+<div class="box eq"><b class="t">Énergie potentielle totale</b>
+$$\Pi(u)=\underbrace{\tfrac12\int_\Omega\varepsilon(u):\mathbb C:\varepsilon(u)\,d\Omega}_{\text{énergie de déformation}}-\Big(\int_\Omega b\cdot u\,d\Omega+\int_{\Gamma_t}\bar t\cdot u\,d\Gamma\Big)$$
+</div>
+
+<div class="box eq"><b class="t">Barre 1D en forme faible (encastrée en 0, force F en L)</b>
+$$\int_0^L EA\,u'\,\delta u'\,dx=F\,\delta u(L)\ \ \forall\delta u\ (\delta u(0)=0)\quad\Rightarrow\quad u'=\frac{F}{EA},\qquad u(x)=\frac{F}{EA}\,x$$
+</div>
+</div>
+
+<!-- 7 -->
+<div class="sec">
+<h2 id="s7"><span class="n">7</span> Exercices types corrigés</h2>
+
+<h3>A — Barre encastrée aux deux extrémités, force volumique f₀ (CM2 ex. 1)</h3>
+<p class="muted">$L=2$ m, $A=100$ mm², $E=200$ GPa, $f_0=10^6$ N/m³.</p>
+<ul>
+<li>CL : $u(0)=0$ et $u(L)=0$ (deux Dirichlet). Équation : $Eu''+f_0=0$ ⇒ $u(x)=\dfrac{f_0}{2E}x(L-x)$.</li>
+<li>$\varepsilon_{xx}=\dfrac{f_0}{2E}(L-2x)$ ; $\sigma_{xx}=f_0\big(\tfrac L2-x\big)$ : <b>traction</b> pour $x\lt L/2$, <b>compression</b> pour $x\gt L/2$.</li>
+<li>$u_{max}=u(L/2)=f_0L^2/(8E)=$ <span class="res">2,5 µm</span> ; $\sigma(0)=+1$ MPa, $\sigma(L)=-1$ MPa.</li>
+<li>Réactions : chaque appui reprend $f_0AL/2=$ <span class="res">100 N</span> selon $-x$ ; total $-200$ N $=-f_0AL$ ⇒ équilibre global vérifié.</li>
+</ul>
+
+<h3>B — Plaque rectangulaire en contraintes planes (CM2 ex. 2)</h3>
+<div class="two">
+<div>
+<svg viewBox="0 0 330 150" width="100%">
+ <rect x="62" y="28" width="190" height="88" fill="#F3E6EE" stroke="#6B1F4F" stroke-width="2"/>
+ <g fill="#fff" stroke="#6B1F4F" stroke-width="1.5"><circle cx="52" cy="45" r="6"/><circle cx="52" cy="72" r="6"/><circle cx="52" cy="99" r="6"/><circle cx="100" cy="126" r="6"/><circle cx="157" cy="126" r="6"/><circle cx="214" cy="126" r="6"/></g>
+ <g stroke="#E2742F" stroke-width="2.4">
+  <line x1="252" y1="42" x2="292" y2="42"/><line x1="252" y1="64" x2="292" y2="64"/><line x1="252" y1="86" x2="292" y2="86"/><line x1="252" y1="108" x2="292" y2="108"/></g>
+ <g fill="#E2742F"><polygon points="296,42 286,37 286,47"/><polygon points="296,64 286,59 286,69"/><polygon points="296,86 286,81 286,91"/><polygon points="296,108 286,103 286,113"/></g>
+ <text x="302" y="80" font-size="14" fill="#E2742F" font-weight="700">T</text>
+ <text x="118" y="20" font-size="11" fill="#333">bord libre : t = 0</text>
+ <text x="2" y="20" font-size="11" fill="#333">u<tspan baseline-shift="sub" font-size="8">x</tspan> = 0</text>
+ <text x="232" y="146" font-size="11" fill="#333">u<tspan baseline-shift="sub" font-size="8">y</tspan> = 0</text>
+ <text x="150" y="76" font-size="11" fill="#6B1F4F">L × H × e</text>
+</svg>
+</div>
+<div>
+<p class="muted" style="margin-top:0">$L=0{,}40$ m, $H=0{,}20$ m, $e=5$ mm, $E=210$ GPa, $\nu=0{,}30$, $T=80$ MPa.</p>
+<table style="margin-top:2px">
+<tr><th>Bord</th><th>Dirichlet</th><th>Neumann</th></tr>
+<tr><td>Gauche</td><td>$u_x=0$</td><td>$\sigma_{xy}=0$</td></tr>
+<tr><td>Bas</td><td>$u_y=0$</td><td>$\sigma_{xy}=0$</td></tr>
+<tr><td>Droit</td><td>—</td><td>$\sigma_{xx}=T$, $\sigma_{xy}=0$</td></tr>
+<tr><td>Haut</td><td>—</td><td>$\sigma_{yy}=\sigma_{xy}=0$</td></tr>
+</table>
+</div>
+</div>
+<ul>
+<li>$u_x=ax$, $u_y=by$ : $\sigma_{yy}=0$ ⇒ $b=-\nu a$ ; $\sigma_{xx}=T$ ⇒ $a=T/E=3{,}81\times10^{-4}$, $b=-1{,}14\times10^{-4}$.</li>
+<li>$\sigma=T\,e_x\otimes e_x$ uniforme ⇒ $\operatorname{div}\sigma=0$ : équilibre vérifié.</li>
+<li>Coin $(L,H)$ : <span class="res">$u_x=0{,}152$ mm</span>, <span class="res">$u_y=-0{,}0229$ mm</span> ; $\varepsilon_{zz}=-\nu T/E=-1{,}14\times10^{-4}$ ⇒ <span class="res">$\Delta e=-0{,}57\ \mu$m</span>.</li>
+<li>Résultante $F=THe=$ <span class="res">80 kN</span> ; le bord gauche réagit avec $-80$ kN répartis, le bord bas ne reprend rien ($\sigma_{yy}=0$).</li>
+</ul>
+
+<div class="two">
+<div>
+<h3>C — Treillis à 2 barres par le PTV</h3>
+<p>Barres symétriques ($EA$, $\ell$, angle $\theta$), force $F$ verticale au nœud.</p>
+<ul>
+<li>$\Delta\ell=u\sin\theta$ ; $N=EA\,\Delta\ell/\ell$</li>
+<li>$\delta W_{int}=2N\,\delta\Delta\ell=\dfrac{2EA}{\ell}\sin^2\theta\,u\,\delta u$ ; $\delta W_{ext}=F\,\delta u$</li>
+<li>$\forall\delta u$ : <span class="res">$u=\dfrac{F\ell}{2EA\sin^2\theta}$</span></li>
+</ul>
+</div>
+<div>
+<h3>D — Cylindre en torsion dans une bague rigide</h3>
+<p>Base $z=0$ encastrée, section $z=L$ tournée de $\varphi$, contact $r=R$ sans frottement.</p>
+<ul>
+<li>CL : $z=0$ : $u=0$ ; $z=L$ : $u_r=u_z=0$, $u_\theta=r\varphi$ ; $r=R$ : $u_r=0$, $\sigma_{r\theta}=\sigma_{rz}=0$.</li>
+<li>$u=\dfrac{\varphi}{L}\,rz\,e_\theta$ ; $\nabla\!\cdot u=0$, Navier : $\nabla^2u_\theta-u_\theta/r^2=0$ ✓</li>
+<li>$\varepsilon_{\theta z}=\dfrac{\varphi r}{2L}$ ⇒ <span class="res">$\sigma_{\theta z}=\dfrac{G\varphi r}{L}$</span>, le reste nul.</li>
+</ul>
+</div>
+</div>
+</div>
+
+<!-- 8 -->
+<div class="sec">
+<h2 id="s8" class="pb"><span class="n">8</span> Pièges des QCM Wooclap</h2>
+<p class="muted">Les 7 premières lignes = les questions ratées (ou sans réponse) en cours.</p>
+<table>
+<tr><th style="width:34%">Question</th><th style="width:36%">Bonne réponse</th><th>Piège</th></tr>
+<tr><td>Équilibre local statique ($b$ force volumique)</td><td class="ok">$\nabla\!\cdot\sigma+b=0$</td><td class="ko">$\nabla\!\cdot u+b=0$</td></tr>
+<tr><td>Contact $r=R$, bague rigide sans frottement</td><td class="ok">$u_r=0$ et $\sigma_{r\theta}=\sigma_{rz}=0$</td><td class="ko">$\sigma_{rr}=0$ (faux : pression de contact)</td></tr>
+<tr><td>Lien forme faible / MEF</td><td class="ok">MEF basée directement sur la forme faible (projection sur fonctions test)</td><td class="ko">« départ / résolution » : trop vague</td></tr>
+<tr><td>Variationnel vs travaux virtuels</td><td class="ok">Variationnel = minimiser une énergie ; TV = égalité travail int./ext.</td><td class="ko">Inverser les deux</td></tr>
+<tr><td>« La forme faible transforme une éq. globale en relation locale »</td><td class="ok">Faux (locale → globale)</td><td class="ko">Vrai</td></tr>
+<tr><td>Méthode des puissances virtuelles</td><td class="ok">Cherche l'équilibre dynamique</td><td class="ko">« Seulement problèmes conservatifs »</td></tr>
+<tr><td>Loi de comportement isotrope</td><td class="ok">$\sigma=\lambda\,\mathrm{tr}(\varepsilon)I+2\mu\varepsilon$</td><td class="ko">$\sigma=E\varepsilon$ en 3D</td></tr>
+<tr><td>Le déplacement virtuel est la solution</td><td class="ok">Faux : fonction test</td><td class="ko">Vrai</td></tr>
+<tr><td>$\delta u$ pour $u=\bar u$ sur $\Gamma_D$</td><td class="ok">$\delta u=0$ sur $\Gamma_D$</td><td class="ko">$\delta u=\bar u$</td></tr>
+<tr><td>Face libre</td><td class="ok">$\sigma\cdot n=0$ sur la face</td><td class="ko">$\sigma=0$ partout, $u=0$</td></tr>
+<tr><td>Encastrée à gauche + $F$ à droite</td><td class="ok">$u(0)=0$ et $N(L)=F$</td><td class="ko">$u(L)=F$</td></tr>
+<tr><td>Surface lubrifiée, normale $e_3$</td><td class="ok">$\sigma_{13}=\sigma_{23}=0$</td><td class="ko">$\sigma_{33}=0$</td></tr>
+<tr><td>Hors plan, déformations planes</td><td class="ok">$\varepsilon_{33}=0$ ($\sigma_{33}=30$ MPa pour 100/0/0,3)</td><td class="ko">$\sigma_{33}=0$</td></tr>
+<tr><td>Hors plan, contraintes planes</td><td class="ok">$\sigma_{33}=0$</td><td class="ko">$\varepsilon_{33}=0$</td></tr>
+<tr><td>Navier sans inertie</td><td class="ok">$G\nabla^2u+(\lambda+G)\nabla(\nabla\!\cdot u)+b=0$</td><td class="ko">Version en $\sigma$, signe −</td></tr>
+<tr><td>Forme faible et dérivées</td><td class="ok">Abaisse l'ordre (IPP)</td><td class="ko">« Exige plus de dérivées »</td></tr>
+<tr><td>PTV statique</td><td class="ok">$\int\sigma:\delta\varepsilon=\int b\cdot\delta u+\int_{\Gamma_N}\bar t\cdot\delta u$</td><td class="ko">$=0$ avec des charges</td></tr>
+<tr><td>Barre fixée en 0, $F$ en $L$, forme faible</td><td class="ok">$\int_0^L EA\,u'\delta u'\,dx=F\,\delta u(L)$</td><td class="ko">$F\delta u(0)$, ou $=F$</td></tr>
+</table>
+<div class="box key"><b class="t">Réflexe avant de cocher</b>Unités (N, Pa, N/m, N/m³) · signe · « effort ou déplacement ? » · « sur la face ou partout ? »</div>
+</div>
+
+<div class="foot">Sources : support MMC 3D CM1–CM3 (B. Moya, 2026-2027), énoncés CM2, notes du 9 novembre, QCM Wooclap, support complet MMC (M. Jebahi). Les corrections des exercices A et B ont été calculées pour cette fiche : à confronter avec la correction du TD.</div>
+
+<script>
+renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],throwOnError:false});
+</script>
+<nav class="tabbar">
+  <a href="./"><span class="i">✅</span>Quiz</a>
+  <a href="fiche.html" class="on"><span class="i">📘</span>Fiche</a>
+  <a href="Fiche_revision_MMC.pdf" target="_blank" rel="noopener"><span class="i">📄</span>PDF</a>
+</nav>
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
+</body>
+</html>

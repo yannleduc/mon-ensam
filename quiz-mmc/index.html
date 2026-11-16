@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2B5CF6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Quiz MMC">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Quiz MMC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#2B5CF6; --blue-d:#1f47cc; --green:#4FA672; --red:#C33055;
+    --bg:#F5F6FA; --card:#fff; --ink:#1E2240; --muted:#6B7090; --line:#E3E6EF;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,-apple-system,Segoe UI,sans-serif}
+  header{background:var(--blue);color:#fff;padding:calc(14px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) 14px calc(20px + env(safe-area-inset-left));display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:5}
+  header .brand{font-weight:800;font-size:22px;letter-spacing:.2px}
+  header .stats{font-size:14px;font-weight:600;opacity:.95;display:flex;gap:14px;align-items:center}
+  .pill{background:rgba(255,255,255,.18);border-radius:999px;padding:4px 10px}
+  main{max-width:640px;margin:0 auto;padding:18px calc(16px + env(safe-area-inset-right)) calc(80px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
+  html{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+  .opt{-webkit-user-select:none;user-select:none}
+  .hist{margin-top:16px;color:var(--muted);font-size:14px}
+  .hist b{color:var(--ink)}
+  .progress{height:6px;background:var(--line);border-radius:6px;overflow:hidden;margin:4px 0 18px}
+  .progress>div{height:100%;background:var(--blue);width:0;transition:width .3s}
+  .meta{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:6px}
+  .tag{display:inline-block;padding:3px 9px;border-radius:999px;background:#E8EDFF;color:var(--blue-d);font-size:12px;font-weight:800}
+  .tag.cours{background:#FFF1D6;color:#9A6200}
+  h1.q{font-size:21px;line-height:1.35;text-align:center;font-weight:800;margin:14px 6px 18px}
+  .fig{background:#fff;border-radius:14px;padding:10px;margin:0 0 14px;display:flex;justify-content:center}
+  .fig svg{max-width:100%;height:auto}
+  .banner{display:none;border-radius:12px;color:#fff;font-weight:800;font-size:19px;text-align:center;padding:14px;margin-bottom:16px}
+  .banner.ok{display:block;background:var(--green)}
+  .banner.ko{display:block;background:var(--red)}
+  .opts{display:flex;flex-direction:column;gap:12px}
+  .opt{background:var(--card);border:2px solid transparent;border-radius:14px;padding:16px 18px;font-size:17px;text-align:left;cursor:pointer;box-shadow:0 2px 8px rgba(30,34,64,.06);display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:inherit;color:var(--ink);transition:border-color .15s, transform .05s}
+  .opt:hover:not([disabled]){border-color:#C9D4FF}
+  .opt:active:not([disabled]){transform:scale(.995)}
+  .opt[disabled]{cursor:default}
+  .opt .mark{flex:none;width:30px;height:30px;border-radius:50%;display:none;align-items:center;justify-content:center;color:#fff;font-weight:800}
+  .opt.correct{border-color:var(--green)}
+  .opt.correct .mark{display:flex;background:var(--green)}
+  .opt.wrong{border-color:var(--red)}
+  .opt.wrong .mark{display:flex;background:var(--red)}
+  .opt.dim{opacity:.55}
+  .expl{display:none;margin-top:16px;background:#fff;border-left:5px solid var(--blue);border-radius:10px;padding:14px 16px;font-size:15.5px;line-height:1.5}
+  .expl.show{display:block}
+  .expl b{color:var(--blue-d)}
+  .nav{display:flex;justify-content:flex-end;margin-top:18px}
+  .btn{background:var(--blue);color:#fff;border:none;border-radius:12px;padding:13px 22px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit}
+  .btn:hover{background:var(--blue-d)}
+  .btn.ghost{background:#fff;color:var(--blue-d);border:2px solid #C9D4FF}
+  .start{background:#fff;border-radius:16px;padding:22px;box-shadow:0 2px 8px rgba(30,34,64,.06)}
+  .start h2{margin:0 0 6px;font-size:22px}
+  .start p{color:var(--muted);margin:0 0 16px;line-height:1.5}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 18px}
+  .chip{border:2px solid #C9D4FF;background:#fff;color:var(--blue-d);border-radius:999px;padding:7px 13px;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px}
+  .chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+  .label{font-weight:800;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .end{text-align:center}
+  .score{font-size:54px;font-weight:800;color:var(--blue);margin:6px 0}
+  .bycat{text-align:left;margin:18px 0;display:flex;flex-direction:column;gap:8px}
+  .bycat .line{display:flex;justify-content:space-between;background:#fff;border-radius:10px;padding:10px 14px;font-weight:600}
+  .rev{text-align:left;margin-top:18px;display:flex;flex-direction:column;gap:10px}
+  .rev .item{background:#fff;border-radius:10px;padding:12px 14px;border-left:5px solid var(--red);font-size:15px;line-height:1.45}
+  .rev .item .a{color:var(--green);font-weight:800}
+  .thumb{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom));width:46px;height:46px;border-radius:50%;background:#fff;box-shadow:0 2px 10px rgba(30,34,64,.15);display:flex;align-items:center;justify-content:center;font-size:22px}
+  .kbd{color:var(--muted);font-size:12px;text-align:center;margin-top:14px}
+  @media (hover:none){.kbd{display:none}}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:6px 0 calc(6px + env(safe-area-inset-bottom));justify-content:space-around;z-index:10}
+  .tabbar a{flex:1;text-align:center;text-decoration:none;color:var(--muted);font-size:11.5px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .tabbar a .i{font-size:21px;line-height:1}
+  .tabbar a.on{color:var(--blue)}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Quiz MMC</div>
+  <div class="stats"><span class="pill" id="sc">Score 0/0</span></div>
+</header>
+<main id="app"></main>
+<nav class="tabbar">
+  <a href="./" class="on"><span class="i">✅</span>Quiz</a>
+  <a href="fiche.html"><span class="i">📘</span>Fiche</a>
+  <a href="Fiche_revision_MMC.pdf" target="_blank" rel="noopener"><span class="i">📄</span>PDF</a>
+</nav>
+
+<script>
+/* ---------- Figures ---------- */
+const FIG = {
+  barreF: `<svg viewBox="0 0 360 120" width="360"><g stroke="#2D4F7A" stroke-width="2"><line x1="40" y1="25" x2="40" y2="95"/>${[...Array(7)].map((_,i)=>`<line x1="40" y1="${30+i*10}" x2="30" y2="${38+i*10}"/>`).join('')}</g><rect x="40" y="42" width="220" height="36" fill="#DCE9F5" stroke="#2D4F7A" stroke-width="2"/><line x1="260" y1="60" x2="320" y2="60" stroke="#C0552B" stroke-width="3"/><polygon points="320,60 308,53 308,67" fill="#C0552B"/><text x="326" y="55" font-size="16" fill="#C0552B" font-family="Nunito">F</text><text x="44" y="108" font-size="13" font-family="Nunito" fill="#333">x = 0</text><text x="238" y="108" font-size="13" font-family="Nunito" fill="#333">x = L</text></svg>`,
+  barreLibre: `<svg viewBox="0 0 360 120" width="360"><g stroke="#2D4F7A" stroke-width="2"><line x1="40" y1="25" x2="40" y2="95"/>${[...Array(7)].map((_,i)=>`<line x1="40" y1="${30+i*10}" x2="30" y2="${38+i*10}"/>`).join('')}</g><rect x="40" y="42" width="240" height="36" fill="#DCE9F5" stroke="#2D4F7A" stroke-width="2"/><text x="60" y="22" font-size="13" font-family="Nunito" fill="#333">encastrement : x = 0</text><text x="190" y="104" font-size="13" font-family="Nunito" fill="#333">extrémité libre : x = L</text></svg>`,
+  cylindre: `<svg viewBox="0 0 300 140" width="300"><text x="10" y="74" font-size="14" font-family="Nunito" fill="#333">Vue du dessus</text><circle cx="180" cy="70" r="52" fill="#DCE9F5" stroke="#2D4F7A" stroke-width="2.5"/><circle cx="180" cy="70" r="57" fill="none" stroke="#555" stroke-width="5" stroke-dasharray="3 3"/><line x1="180" y1="70" x2="228" y2="70" stroke="#2D4F7A" stroke-width="2"/><polygon points="230,70 220,65 220,75" fill="#2D4F7A"/><text x="198" y="64" font-size="14" font-family="Nunito">r</text><text x="244" y="30" font-size="14" font-family="Nunito" fill="#555">bague rigide</text></svg>`,
+  plaque: `<svg viewBox="0 0 380 170" width="380"><rect x="70" y="35" width="220" height="100" fill="#DCE9F5" stroke="#2D4F7A" stroke-width="2"/><g fill="none" stroke="#2D4F7A" stroke-width="1.6"><circle cx="58" cy="55" r="7"/><circle cx="58" cy="85" r="7"/><circle cx="58" cy="115" r="7"/><circle cx="110" cy="147" r="7"/><circle cx="180" cy="147" r="7"/><circle cx="250" cy="147" r="7"/></g>${[50,75,100,125].map(y=>`<line x1="290" y1="${y}" x2="335" y2="${y}" stroke="#C0552B" stroke-width="2.5"/><polygon points="337,${y} 327,${y-5} 327,${y+5}" fill="#C0552B"/>`).join('')}<text x="343" y="92" font-size="15" fill="#C0552B" font-family="Nunito">T</text><text x="135" y="25" font-size="13" font-family="Nunito" fill="#333">bord libre</text><text x="2" y="30" font-size="13" font-family="Nunito" fill="#333">uₓ = 0</text><text x="290" y="166" font-size="13" font-family="Nunito" fill="#333">u_y = 0</text></svg>`,
+  lopin: `<svg viewBox="0 0 300 150" width="300"><rect x="60" y="20" width="180" height="14" fill="#9AA4B5"/><rect x="60" y="116" width="180" height="14" fill="#9AA4B5"/><rect x="100" y="34" width="100" height="82" fill="#DCE9F5" stroke="#2D4F7A" stroke-width="2"/><line x1="150" y1="0" x2="150" y2="16" stroke="#C0552B" stroke-width="3"/><polygon points="150,19 144,9 156,9" fill="#C0552B"/><text x="160" y="13" font-size="13" font-family="Nunito" fill="#C0552B">U</text><text x="246" y="31" font-size="12" font-family="Nunito">z = h</text><text x="246" y="127" font-size="12" font-family="Nunito">z = 0</text></svg>`
+};
+
+/* ---------- Questions : la 1re option est la bonne (mélangées à l'affichage) ---------- */
+const Q = [
+ // ===== Équations de base =====
+ {c:"Équations",cours:1,q:"Quelle relation définit le tenseur des petites déformations ?",o:["ε = ½(∇u + (∇u)ᵀ)","ε = ∇u","ε = ½(∇u − (∇u)ᵀ)","ε = ∇·u"],e:"ε est la partie <b>symétrique</b> de ∇u. La partie antisymétrique ½(∇u − ∇uᵀ) est la rotation ω, et ∇·u = tr ε est la variation de volume."},
+ {c:"Équations",cours:1,q:"En statique, quelle équation d'équilibre local est correcte si b est la force par unité de volume ?",o:["∇·σ + b = 0","∇·u + b = 0","σ:ε = b","∇²σ = 0 dans tous les cas"],e:"Équilibre local : div σ + b = 0 (3 équations). En dynamique : div σ + b = ρü. u est un déplacement, pas un effort."},
+ {c:"Équations",cours:1,q:"Quelle loi de comportement 3D est correcte pour un solide homogène isotrope linéaire ?",o:["σ = 2Gε + λ tr(ε) I","σ = Eε dans toutes les situations 3D","σ = 2Gε − λ tr(ε) I pour tout ν","σ = λ∇u"],e:"Loi de Hooke–Lamé : σ = λ tr(ε) I + 2μ ε, avec μ = G. σ = Eε n'est valable qu'en traction 1D."},
+ {c:"Équations",cours:1,q:"Quelle relation cinématique relie les petites déformations au déplacement ?",o:["ε = ½(∇u + ∇uᵀ)","σ = Eε","div σ + f = 0","σ·n = t"],e:"Les trois autres sont respectivement une loi de comportement 1D, l'équilibre et le théorème de Cauchy."},
+ {c:"Équations",q:"Combien d'inconnues scalaires compte le problème d'élasticité 3D complet (u, ε, σ) ?",o:["15","9","12","6"],e:"3 (u) + 6 (ε) + 6 (σ) = 15, pour 6 + 3 + 6 = 15 équations (cinématique, équilibre, comportement)."},
+ {c:"Équations",q:"Pourquoi ne peut-on pas résoudre directement l'équilibre local seul ?",o:["3 équations pour 6 composantes de σ","Parce que σ n'est pas symétrique","Parce que f est inconnue","Parce que l'équilibre ne s'écrit qu'en dynamique"],e:"div σ + f = 0 donne 3 équations pour les 6 composantes indépendantes de σ : il faut y adjoindre comportement et compatibilité."},
+ {c:"Équations",q:"Le module de cisaillement G s'exprime en fonction de E et ν par :",o:["G = E / (2(1+ν))","G = E / (1−2ν)","G = Eν / ((1+ν)(1−2ν))","G = 2E(1+ν)"],e:"μ = G = E/(2(1+ν)). Les autres : E/(1−2ν) = 3K et Eν/((1+ν)(1−2ν)) = λ."},
+ {c:"Équations",q:"Quelle est l'unité d'une force volumique f (ex. ρg) ?",o:["N/m³","Pa","N/m","N"],e:"Force par unité de volume : N/m³. Une traction t ou une contrainte σ est en Pa (N/m²), une force linéique q = A f en N/m."},
+ {c:"Équations",q:"Le tenseur gradient du déplacement H est relié au gradient de la transformation F par :",o:["H = F − I","H = F + I","H = Fᵀ F","H = ½(F + Fᵀ)"],e:"dx = F·dX et u = x − X, donc grad u = F − I."},
+
+ // ===== Conditions aux limites =====
+ {c:"Conditions aux limites",cours:1,q:"Quelle est la condition de Dirichlet correcte sur Γ_D ?",o:["u = ū sur Γ_D","σn = t̄ sur Γ_D","∇·σ = 0 sur Γ_D","δε = 0 dans tout Ω"],e:"Dirichlet = déplacement imposé (condition essentielle). σn = t̄ est la condition de Neumann, sur Γ_N."},
+ {c:"Conditions aux limites",cours:1,fig:"barreLibre",q:"Sur une face libre de toute traction, quelle affirmation est correcte ?",o:["σ·n = 0 sur la face libre","σ = 0 partout dans le solide","u = 0 sur la face libre","∇·u = 0 sur la face libre"],e:"Face libre : seul le vecteur traction t = σ·n est nul, et seulement sur cette face. Les composantes de σ parallèles à la face peuvent être non nulles."},
+ {c:"Conditions aux limites",cours:1,q:"Une face est libre. Quelle condition de traction impose-t-on ?",o:["t = 0","u = 0","σ₃₃ = 100 MPa","ε = 0"],e:"Une face libre est une condition de Neumann homogène : t = 0."},
+ {c:"Conditions aux limites",cours:1,q:"Une barre est encastrée en x = 0. Quelle condition impose-t-on pour son déplacement axial ?",o:["u(0) = 0","σ(0) = 0","u(L) = 0","ε(0) = 0"],e:"L'encastrement bloque le déplacement : u(0) = 0, condition de Dirichlet. La contrainte y est au contraire en général maximale."},
+ {c:"Conditions aux limites",cours:1,fig:"barreF",q:"Barre encastrée à gauche, chargée par une force axiale F à droite : quel couple de conditions est correct ?",o:["u(0) = 0 et N(L) = F","u(0) = 0 et u(L) = F","N(0) = 0 et u(L) = 0","u′(0) = 0 et N(L) = 0"],e:"Dirichlet en x = 0, Neumann en x = L : N(L) = EA u′(L) = F. On n'égale jamais un déplacement à une force."},
+ {c:"Conditions aux limites",cours:1,q:"Sur une surface parfaitement lubrifiée normale à e₃, quelles contraintes sont nulles ?",o:["σ₁₃ et σ₂₃","σ₃₃ uniquement","Toutes les contraintes","σ₁₁ et σ₂₂"],e:"Pas de frottement → pas de traction tangentielle : σ₁₃ = σ₂₃ = 0. σ₃₃ ≠ 0 : c'est la réaction normale de contact."},
+ {c:"Conditions aux limites",cours:1,fig:"cylindre",q:"Au contact latéral r = R entre le cylindre et une bague rigide, sans frottement, quelles conditions conviennent ?",o:["u_r = 0 et σ_rθ = σ_rz = 0","u_r = u_θ = u_z = 0","σ_rr = σ_rθ = σ_rz = 0 nécessairement","u_θ = 0 et σ_rr = 0"],e:"La bague rigide bloque le déplacement radial (u_r = 0) ; sans frottement, les tractions tangentielles sont nulles. σ_rr ≠ 0 : c'est la pression de contact."},
+ {c:"Conditions aux limites",fig:"lopin",q:"Lopin comprimé entre deux plateaux rigides (z = 0 fixe, z = h descend de U). Quelles conditions de déplacement vertical ?",o:["u_z(x,y,0) = 0 et u_z(x,y,h) = −U","u_z(x,y,0) = 0 et u_z(x,y,h) = +U","σ_zz = 0 sur les deux faces","u = 0 sur les deux faces"],e:"La face supérieure descend : u_z = −U en z = h (axe z vers le haut). Les autres composantes dépendent du contact (lubrifié ou adhérent)."},
+ {c:"Conditions aux limites",q:"Si le plateau est parfaitement lubrifié, a-t-on u₁ = u₂ = 0 sur la face de contact ?",o:["Non : u₁ et u₂ sont libres, ce sont σ₁₃ et σ₂₃ qui sont nuls","Oui, toujours","Oui, seulement si U > 0","Non : c'est u₃ qui est libre"],e:"Lubrifié = glissement possible, donc u₁, u₂ libres et tractions tangentielles nulles. u₁ = u₂ = 0 correspond à l'adhérence parfaite."},
+ {c:"Conditions aux limites",q:"En un point de la frontière et dans une même direction, peut-on imposer à la fois u et la traction ?",o:["Non, on impose l'un ou l'autre","Oui, c'est même obligatoire","Oui, si le matériau est isotrope","Seulement en dynamique"],e:"Par composante : soit le déplacement (Dirichlet), soit l'effort (Neumann). Les deux seraient surabondants et en général contradictoires."},
+ {c:"Conditions aux limites",q:"Un solide 3D soumis uniquement à des efforts imposés : combien de modes rigides restent indéterminés ?",o:["6 (3 translations + 3 rotations)","3 translations seulement","0","12"],e:"La solution en u n'est définie qu'à un mouvement de corps rigide près, et résultante + moment des efforts extérieurs doivent être nuls."},
+ {c:"Conditions aux limites",q:"La condition de Neumann est aussi appelée :",o:["Condition naturelle","Condition essentielle","Condition de compatibilité","Condition initiale"],e:"Neumann = naturelle : elle apparaît d'elle-même dans le terme de bord de la forme faible. Dirichlet = essentielle : elle doit être imposée sur l'espace des solutions."},
+ {c:"Conditions aux limites",fig:"plaque",q:"Plaque en contraintes planes avec appui glissant u_x = 0 sur le bord gauche : quelle condition de Neumann complète ce bord ?",o:["σ_xy = 0 (traction tangentielle nulle)","σ_xx = 0","u_y = 0","σ_yy = T"],e:"Appui glissant : la composante normale du déplacement est bloquée, la composante tangentielle est libre, donc t_y = −σ_xy = 0."},
+
+ // ===== Modèles plans =====
+ {c:"Modèles plans",cours:1,q:"En déformations planes, quelle condition impose-t-on dans la direction hors plan 3 ?",o:["ε₃₃ = 0","σ₃₃ = 0","ε₁₁ = 0","σ₁₁ = 0"],e:"Déformations planes (pièce longue, u₃ bloqué) : ε₃₃ = ε₁₃ = ε₂₃ = 0, mais σ₃₃ = ν(σ₁₁ + σ₂₂) ≠ 0."},
+ {c:"Modèles plans",cours:1,q:"En contraintes planes, quelle condition impose-t-on dans la direction hors plan 3 ?",o:["σ₃₃ = 0","ε₃₃ = 0","σ₁₁ = 0","u₃ = 0"],e:"Contraintes planes (pièce mince) : σ₃₃ = σ₁₃ = σ₂₃ = 0, mais ε₃₃ = −ν(σ₁₁ + σ₂₂)/E ≠ 0."},
+ {c:"Modèles plans",cours:1,q:"En déformations planes, σ₁₁ = 100 MPa, σ₂₂ = 0 et ν = 0,30. Calculer σ₃₃ (élastique linéaire isotrope).",o:["30 MPa","0 MPa","70 MPa","100 MPa"],e:"σ₃₃ = ν(σ₁₁ + σ₂₂) = 0,3 × 100 = 30 MPa."},
+ {c:"Modèles plans",q:"En contraintes planes, E = 210 GPa, ν = 0,30, σ₁₁ = 100 MPa, σ₂₂ = 0. Que vaut ε₃₃ ?",o:["−1,43 × 10⁻⁴","0","+1,43 × 10⁻⁴","−4,76 × 10⁻⁴"],e:"ε₃₃ = −ν(σ₁₁ + σ₂₂)/E = −0,3 × 100 / 210 000 = −1,43 × 10⁻⁴. La plaque s'amincit."},
+ {c:"Modèles plans",q:"Un tunnel très long étudié loin de ses extrémités relève plutôt de :",o:["Déformations planes","Contraintes planes","Traction simple 1D","Aucun modèle plan"],e:"Structure longue, déplacement axial bloqué : déformations planes (ε₃₃ = 0). Tôles et plaques minces : contraintes planes."},
+ {c:"Modèles plans",q:"Une tôle mince chargée dans son plan : quelle affirmation est correcte ?",o:["σ₃₃ = 0 mais l'épaisseur varie (ε₃₃ ≠ 0)","ε₃₃ = 0 donc l'épaisseur ne varie pas","σ₃₃ = ν(σ₁₁ + σ₂₂)","Toutes les composantes hors plan sont nulles, σ et ε"],e:"« Contrainte nulle » n'implique pas « déformation nulle » : la tôle s'amincit sous traction."},
+
+ // ===== Formulation forte / Navier =====
+ {c:"Formulation forte & Navier",cours:1,q:"Dans la méthode des déplacements, quelle est l'inconnue principale ?",o:["Le déplacement u","La contrainte σ","Le module E","La force F"],e:"On cherche u ; ε s'en déduit par dérivation, σ par la loi de Hooke."},
+ {c:"Formulation forte & Navier",cours:1,q:"Sans inertie et pour un matériau isotrope homogène, quelle équation de Navier est correcte ?",o:["G∇²u + (λ+G)∇(∇·u) + b = 0","G∇u + (λ+G)(∇·u) + b = 0","G∇²σ + (λ+G)∇(∇·σ) = 0","G∇²u − (λ+G)∇(∇·u) = b"],e:"Navier–Lamé : μΔu + (λ+μ)∇(∇·u) + f = 0, avec μ = G. C'est une équation en u, pas en σ."},
+ {c:"Formulation forte & Navier",q:"Quel est l'avantage principal de la méthode des déplacements ?",o:["La compatibilité des déformations est automatiquement satisfaite","L'équilibre est automatiquement satisfait","Elle n'a pas besoin de conditions aux limites","Elle évite la loi de Hooke"],e:"ε étant calculée à partir d'un vrai champ u, elle dérive forcément d'un déplacement continu. Il reste à vérifier Navier (équilibre) et les CL."},
+ {c:"Formulation forte & Navier",q:"La méthode de Beltrami–Michell prend comme inconnue principale :",o:["Le tenseur des contraintes σ","Le déplacement u","La déformation ε seule","L'énergie potentielle Π"],e:"Méthode des contraintes : σ vérifie l'équilibre, ε s'obtient par Hooke inverse, puis on impose les équations de compatibilité."},
+ {c:"Formulation forte & Navier",q:"Méthode de Navier : dans quel ordre combine-t-on les équations ?",o:["Cinématique dans Hooke, puis le tout dans l'équilibre","Équilibre dans Hooke, puis le tout dans la compatibilité","Hooke dans la cinématique, puis CL","Compatibilité dans l'équilibre"],e:"ε(u) → σ(ε(u)) → div σ(u) + f = 0. L'autre ordre (équilibre → Hooke → compatibilité) est celui de Beltrami–Michell."},
+ {c:"Formulation forte & Navier",q:"Pourquoi la formulation forte peut-elle perdre son sens mathématique ?",o:["Elle exige des champs dérivables deux fois, impossible aux angles ou sous charges concentrées","Elle n'utilise pas la loi de Hooke","Elle ne s'applique qu'en dynamique","Elle n'a pas de conditions aux limites"],e:"Géométries complexes, contraintes discontinues, singularités : les dérivées classiques n'existent pas partout. La forme faible relâche cette exigence."},
+ {c:"Formulation forte & Navier",q:"Quelle méthode numérique s'appuie directement sur la forme forte ?",o:["Les différences finies","Les éléments finis","La minimisation de l'énergie potentielle","Le principe des travaux virtuels"],e:"Différences finies, méthodes spectrales, collocation sans maillage approchent directement les dérivées locales. La MEF repose sur la forme faible."},
+ {c:"Formulation forte & Navier",q:"Cylindre en torsion : on postule u = (φ/L) r z e_θ. Que vaut la seule contrainte non nulle ?",o:["σ_θz = Gφr / L","σ_rr = Eφ / L","σ_θz = Gφ / (rL)","σ_zz = Gφr / L"],e:"ε_θz = ½ ∂u_θ/∂z = φr/(2L), tr ε = 0, donc σ_θz = 2G ε_θz = Gφr/L. Elle croît linéairement avec r."},
+
+ // ===== Problèmes 1D =====
+ {c:"Problèmes 1D",q:"Barre (E, A constants) soumise à une force volumique axiale b : quelle équation en déplacements ?",o:["E u″ + b = 0","E u′ + b = 0","EA u″ = b·L","u″ + E b = 0"],e:"(EA u′)′ + A b = 0, donc E u″ + b = 0 si E et A sont constants."},
+ {c:"Problèmes 1D",q:"Barre encastrée en 0, libre en L, force volumique b uniforme : que vaut σ(x) ?",o:["σ(x) = b(L − x)","σ(x) = bx","σ(x) = b(L − x)²/2","σ(x) = bL partout"],e:"u′ = (b/E)(L − x), σ = E u′ = b(L − x). Vérif : σ′ + b = 0 et σ(L) = 0 (bout libre)."},
+ {c:"Problèmes 1D",q:"Même barre (encastrée en 0, libre en L, f₀ = 10⁵ N/m³, L = 2 m, E = 200 GPa) : que vaut u(L) ?",o:["1 µm","2 µm","0,5 µm","10 µm"],e:"u(L) = f₀L²/(2E) = 10⁵ × 4 / (4 × 10¹¹) = 10⁻⁶ m = 1 µm."},
+ {c:"Problèmes 1D",q:"Barre encastrée aux DEUX extrémités, force volumique f₀ uniforme : où est le déplacement maximal ?",o:["En x = L/2, u max = f₀L²/(8E)","En x = L, u max = f₀L²/(2E)","En x = 0","En x = L/2, u max = f₀L²/(2E)"],e:"u(x) = (f₀/2E) x(L − x), maximum au milieu : f₀L²/(8E)."},
+ {c:"Problèmes 1D",q:"Barre encastrée aux deux bouts, f₀ > 0 selon +x : quelle zone est en traction ?",o:["0 < x < L/2","L/2 < x < L","Toute la barre","Aucune"],e:"σ = f₀(L/2 − x) : positive (traction) pour x < L/2, négative (compression) pour x > L/2."},
+ {c:"Problèmes 1D",fig:"barreF",q:"Barre encastrée en 0, force F en L, pas de charge répartie : quelle solution ?",o:["u(x) = F x / (EA)","u(x) = F x² / (2EA)","u(x) = F L / (EA) partout","u(x) = E A x / F"],e:"N′ = 0 → N = F constant → u′ = F/(EA) → u = Fx/(EA) avec u(0) = 0."},
+
+ // ===== Formulation faible =====
+ {c:"Formulation faible",cours:1,q:"Quelle affirmation est correcte sur les formulations forte et faible ?",o:["La forme faible abaisse généralement l'ordre des dérivées requises grâce à l'intégration par parties","La forme faible exige toujours plus de dérivées de u","La forme forte et faible sont sans lien","La forme forte ne contient aucune condition aux limites"],e:"L'IPP fait passer une dérivée de u vers δu : on ne demande plus que des dérivées premières de u."},
+ {c:"Formulation faible",cours:1,q:"Quelle condition un déplacement virtuel δu doit-il respecter pour une condition u = ū sur Γ_D ?",o:["δu = 0 sur Γ_D","δu = ū sur Γ_D","δu = 0 dans tout Ω","σ·δu = 0 sur Γ_N"],e:"δu est une variation autour d'un champ admissible : là où u est imposé, la variation est nulle. C'est pourquoi le terme de bord sur Γ_D disparaît."},
+ {c:"Formulation faible",cours:1,q:"Quelle identité est correcte pour un tenseur des contraintes symétrique et un champ virtuel δu ?",o:["∫Ω (∇·σ)·δu dΩ = ∫Γ (σn)·δu dΓ − ∫Ω σ:∇δu dΩ","∫Ω (∇·σ)·δu dΩ = ∫Ω σ:δu dΩ","∫Ω (∇·σ)·δu dΩ = 0 pour tout σ","∫Ω (∇·σ)·δu dΩ = ∫Γ σ dΓ"],e:"Intégration par parties + théorème de la divergence. Comme σ est symétrique, σ:∇δu = σ:δε."},
+ {c:"Formulation faible",cours:1,q:"Quelle expression du principe des travaux virtuels est correcte en statique ?",o:["∫Ω σ:δε dΩ = ∫Ω b·δu dΩ + ∫ΓN t̄·δu dΓ","∫Ω σ:δu dΩ = ∫ΓD t̄·δε dΓ","∫Ω ε:δu dΩ = 0 toujours","∫Ω σ:δε dΩ = 0 même avec des charges non nulles"],e:"δW_int = δW_ext pour tout δu admissible. Le terme de bord porte sur Γ_N, là où la traction est imposée."},
+ {c:"Formulation faible",cours:1,fig:"barreF",q:"Pour une barre fixée en x = 0, soumise à F en x = L, sans force distribuée, quelle équation est correcte ?",o:["∫₀ᴸ EA u′δu′ dx = F δu(L)","∫₀ᴸ EA u′δu dx = F","∫₀ᴸ EA u″δu′ dx = F δu(0)","∫₀ᴸ EA u′δu′ dx = 0, quel que soit F"],e:"Travail interne ∫ N δε dx avec N = EA u′ et δε = δu′ ; travail externe F δu(L). En x = 0, δu(0) = 0."},
+ {c:"Formulation faible",cours:1,vf:1,q:"La formulation faible transforme une équation globale en une relation locale.",o:["Faux","Vrai"],e:"C'est l'inverse : elle transforme l'équilibre local (point par point) en une égalité intégrale, globale, sur tout Ω."},
+ {c:"Formulation faible",cours:1,vf:1,q:"Le déplacement virtuel est la solution de la formulation faible.",o:["Faux","Vrai"],e:"δu est une fonction test, arbitraire et admissible (δu = 0 sur Γ_D). La solution est u."},
+ {c:"Formulation faible",cours:1,vf:1,q:"La formulation faible permet de réduire l'ordre des dérivées nécessaires sur le champ de déplacement.",o:["Vrai","Faux"],e:"Grâce à l'intégration par parties, seules des dérivées premières de u (via ε) apparaissent."},
+ {c:"Formulation faible",cours:1,q:"La méthode des puissances virtuelles :",o:["Cherche l'équilibre dynamique","Cherche uniquement l'équilibre statique","S'applique seulement à des problèmes conservatifs","Remplace la loi de comportement"],e:"Le PPV s'écrit P*int = P*ext + P*inertie avec une vitesse virtuelle : il contient la dynamique."},
+ {c:"Formulation faible",cours:1,q:"Quelle est la différence fondamentale entre la méthode variationnelle et la méthode des travaux virtuels ?",o:["Variationnelle : minimisation d'une énergie ou d'un potentiel. Travaux virtuels : égalité du travail virtuel interne et externe","Variationnelle : équation d'équilibre. Travaux virtuels : énergie","Aucune différence","Variationnelle : forme forte. Travaux virtuels : différences finies"],e:"Approche variationnelle : δΠ(u) = 0 avec Π = énergie de déformation − travail des charges. PTV : δW_int = δW_ext pour tout δu."},
+ {c:"Formulation faible",cours:1,q:"Quel lien existe-t-il entre formulation faible et méthode des éléments finis ?",o:["La MEF est basée directement sur la formulation faible : on projette les équations sur un espace discret de fonctions test","La MEF utilise la forme forte point par point","Aucun lien","La MEF n'utilise que l'énergie cinétique"],e:"Galerkine : on discrétise u et δu sur les mêmes fonctions de forme et on écrit le PTV pour chaque fonction test."},
+ {c:"Formulation faible",q:"Dans la forme faible, pourquoi la condition de Neumann est-elle dite « naturelle » ?",o:["Elle apparaît d'elle-même dans le terme de bord ∫Γt t̄·δu","Elle est imposée sur l'espace des champs admissibles","Elle ne sert à rien en statique","Elle fixe δu = 0"],e:"Après l'IPP, σn apparaît sur le bord : sur Γ_t on le remplace par t̄. La condition de Dirichlet, elle, est imposée à part (essentielle)."},
+ {c:"Formulation faible",q:"L'énergie potentielle totale Π(u) vaut :",o:["½∫Ω ε:C:ε dΩ − (∫Ω b·u dΩ + ∫Γt t̄·u dΓ)","∫Ω σ:δε dΩ","½∫Ω ε:C:ε dΩ + ∫Ω b·u dΩ","∫Ω b·u dΩ − ∫Γt t̄·u dΓ"],e:"Énergie de déformation interne moins travail des efforts extérieurs. La solution rend Π stationnaire (minimale) : δΠ = 0."},
+ {c:"Formulation faible",q:"Treillis symétrique de 2 barres (EA, longueur ℓ, angle θ), force F verticale au nœud. Par le PTV, le déplacement vaut :",o:["u = Fℓ / (2EA sin²θ)","u = Fℓ / (EA sinθ)","u = Fℓ sin²θ / (2EA)","u = 2Fℓ / (EA cos²θ)"],e:"Δℓ = u sinθ, N = EAΔℓ/ℓ. δW_int = 2NδΔℓ = (2EA/ℓ) sin²θ u δu = F δu."}
+];
+
+/* ---------- Moteur ---------- */
+const app = document.getElementById('app');
+const scEl = document.getElementById('sc');
+const CATS = [...new Set(Q.map(x=>x.c))];
+let state = {deck:[], i:0, good:0, answered:false, wrong:[], perCat:{}};
+let selCats = new Set(CATS), onlyCours = false, doShuffle = true;
+let lastWrong = loadWrong();
+
+function loadHist(){ try{ return JSON.parse(localStorage.getItem('mmcQuizHist')||'[]'); }catch(e){ return []; } }
+function saveHist(a){ try{ localStorage.setItem('mmcQuizHist', JSON.stringify(a.slice(-30))); }catch(e){} }
+function loadWrong(){ try{ return JSON.parse(localStorage.getItem('mmcQuizWrong')||'[]'); }catch(e){ return []; } }
+function saveWrong(a){ try{ localStorage.setItem('mmcQuizWrong', JSON.stringify(a)); }catch(e){} }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+function home(){
+  scEl.textContent = `${Q.length} questions`;
+  const pool = Q.filter(x=>selCats.has(x.c) && (!onlyCours||x.cours));
+  app.innerHTML = `
+  <div class="start">
+    <h2>Quiz MMC — formulations forte, déplacements et faible</h2>
+    <p>Questions au format des Wooclap du cours (B. Moya) : ${Q.filter(x=>x.cours).length} reprises des sessions en classe, ${Q.filter(x=>!x.cours).length} nouvelles dans le même esprit. Une seule bonne réponse par question, correction immédiate.</p>
+    <div class="label">Chapitres</div>
+    <div class="chips">${CATS.map(c=>`<button class="chip ${selCats.has(c)?'on':''}" data-c="${c}">${c} (${Q.filter(x=>x.c===c).length})</button>`).join('')}</div>
+    <div class="label">Options</div>
+    <div class="chips">
+      <button class="chip ${onlyCours?'on':''}" id="oc">Seulement les questions vues en cours</button>
+      <button class="chip ${doShuffle?'on':''}" id="sh">Ordre aléatoire</button>
+    </div>
+    <div class="row">
+      <button class="btn" id="go" ${pool.length?'':'disabled'}>Commencer (${pool.length})</button>
+      ${lastWrong.length?`<button class="btn ghost" id="redo">Refaire mes ${lastWrong.length} erreurs</button>`:''}
+    </div>
+    ${(()=>{const H=loadHist(); if(!H.length) return ''; const best=H.reduce((m,x)=>Math.max(m,Math.round(x.g/x.n*100)),0); const l=H[H.length-1];
+      return `<div class="hist">Dernier essai : <b>${l.g}/${l.n}</b> (${l.d}) · Meilleur : <b>${best} %</b> · ${H.length} essai${H.length>1?'s':''}</div>`;})()}
+  </div>`;
+  app.querySelectorAll('.chip[data-c]').forEach(b=>b.onclick=()=>{const c=b.dataset.c; selCats.has(c)?selCats.delete(c):selCats.add(c); home();});
+  document.getElementById('oc').onclick=()=>{onlyCours=!onlyCours;home();};
+  document.getElementById('sh').onclick=()=>{doShuffle=!doShuffle;home();};
+  document.getElementById('go').onclick=()=>start(pool);
+  const r=document.getElementById('redo'); if(r) r.onclick=()=>start(Q.filter(x=>lastWrong.includes(x.q)));
+}
+
+function start(pool){
+  const deck = (doShuffle?shuffle(pool):pool).map(x=>{
+    const idx = x.vf ? x.o.map((_,k)=>k).sort((a,b)=>x.o[a]==='Vrai'?-1:1) : shuffle(x.o.map((_,k)=>k));
+    return {...x, order: x.vf ? [x.o.indexOf('Vrai'),x.o.indexOf('Faux')] : idx};
+  });
+  state = {deck, i:0, good:0, answered:false, wrong:[], perCat:{}};
+  render();
+}
+
+function render(){
+  const s=state, x=s.deck[s.i];
+  scEl.textContent = `Score ${s.good}/${s.i + (s.answered?1:0)}`;
+  app.innerHTML = `
+    <div class="meta"><span>Question ${s.i+1} / ${s.deck.length}</span><span><span class="tag ${x.cours?'cours':''}">${x.cours?'Vu en cours · ':''}${x.c}</span></span></div>
+    <div class="progress"><div style="width:${(s.i)/s.deck.length*100}%"></div></div>
+    ${x.fig?`<div class="fig">${FIG[x.fig]}</div>`:''}
+    <h1 class="q">${esc(x.q)}</h1>
+    <div class="banner" id="ban"></div>
+    <div class="opts">${x.order.map(k=>`<button class="opt" data-k="${k}"><span>${esc(x.o[k])}</span><span class="mark"></span></button>`).join('')}</div>
+    <div class="expl" id="ex"><b>Explication.</b> ${x.e}</div>
+    <div class="nav"><button class="btn" id="nx" style="display:none">${s.i+1<s.deck.length?'Question suivante →':'Voir mon score'}</button></div>
+    <div class="kbd">Raccourcis : touches 1 à 4 pour répondre, Entrée pour continuer</div>`;
+  app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>answer(+b.dataset.k));
+  document.getElementById('nx').onclick=next;
+  window.scrollTo({top:0});
+}
+
+function answer(k){
+  const s=state, x=s.deck[s.i]; if(s.answered) return; s.answered=true;
+  const ok = k===0;
+  s.perCat[x.c] = s.perCat[x.c]||{g:0,n:0}; s.perCat[x.c].n++;
+  if(ok){ s.good++; s.perCat[x.c].g++; } else s.wrong.push({q:x.q, a:x.o[0], your:x.o[k]});
+  app.querySelectorAll('.opt').forEach(b=>{
+    const kk=+b.dataset.k; b.disabled=true;
+    if(kk===0){ b.classList.add('correct'); b.querySelector('.mark').textContent='✓'; }
+    else if(kk===k){ b.classList.add('wrong'); b.querySelector('.mark').textContent='✕'; }
+    else b.classList.add('dim');
+  });
+  const ban=document.getElementById('ban');
+  ban.className='banner '+(ok?'ok':'ko'); ban.textContent = ok?'✨ Félicitations ! ✨':'✕ Réponse incorrecte ✕';
+  document.getElementById('ex').classList.add('show');
+  document.getElementById('nx').style.display='inline-block';
+  scEl.textContent = `Score ${s.good}/${s.i+1}`;
+}
+
+function next(){
+  const s=state; if(!s.answered) return;
+  if(s.i+1<s.deck.length){ s.i++; s.answered=false; render(); } else end();
+}
+
+function end(){
+  const s=state, n=s.deck.length, pct=Math.round(s.good/n*100);
+  lastWrong = s.wrong.map(w=>w.q); saveWrong(lastWrong);
+  const H=loadHist(); H.push({g:s.good,n,d:new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}); saveHist(H);
+  const msg = pct>=90?'Prêt pour le test 🎯':pct>=70?'Solide, revois les erreurs ci-dessous':pct>=50?'Encore un passage sur la fiche':'Reprends la fiche avant de refaire le quiz';
+  app.innerHTML = `
+  <div class="start end">
+    <h2>Résultat</h2>
+    <div class="score">${s.good} / ${n}</div>
+    <p>${pct} % · ${msg}</p>
+    <div class="bycat">${Object.entries(s.perCat).map(([c,v])=>`<div class="line"><span>${c}</span><span>${v.g} / ${v.n}</span></div>`).join('')}</div>
+    <div class="row" style="justify-content:center">
+      ${s.wrong.length?`<button class="btn" id="redo">Refaire mes ${s.wrong.length} erreurs</button>`:''}
+      <button class="btn ghost" id="home">Retour au menu</button>
+    </div>
+    ${s.wrong.length?`<div class="rev"><div class="label">À revoir</div>${s.wrong.map(w=>`<div class="item">${esc(w.q)}<br>Ta réponse : ${esc(w.your)}<br><span class="a">Bonne réponse : ${esc(w.a)}</span></div>`).join('')}</div>`:''}
+  </div>`;
+  scEl.textContent = `Score ${s.good}/${n}`;
+  const r=document.getElementById('redo'); if(r) r.onclick=()=>start(Q.filter(x=>lastWrong.includes(x.q)));
+  document.getElementById('home').onclick=home;
+}
+
+document.addEventListener('keydown',e=>{
+  if(!state.deck.length || !document.querySelector('.opts')) return;
+  if(e.key==='Enter'){ next(); return; }
+  const n=parseInt(e.key,10);
+  if(n>=1 && n<=4){ const b=app.querySelectorAll('.opt')[n-1]; if(b) answer(+b.dataset.k); }
+});
+
+home();
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+</script>
+</body>
+</html>
