@@ -3,93 +3,91 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2B5CF6">
+<meta name="theme-color" content="#6B1F4F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Quiz MMC">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <title>Fiche MMC</title>
 <link rel="stylesheet" href="vendor/katex/katex.min.css">
 <script src="vendor/katex/katex.min.js"></script>
 <script src="vendor/katex/contrib/auto-render.min.js"></script>
 <style>
-  @page { size: A4; margin: 14mm 13mm 15mm 13mm; }
-  :root{
-    --c1:#6B1F4F; --c2:#8A2D65; --acc:#E2742F; --ink:#1d1f2b; --muted:#5d6275;
-    --bg1:#F7EEF3; --bg2:#FFF4EA; --line:#E4D3DD; --ok:#2F8F5B; --ko:#C33055;
-  }
-  *{box-sizing:border-box}
-  body{font-family:Inter, "DejaVu Sans", sans-serif; color:var(--ink); font-size:9.6pt; line-height:1.42; margin:0;}
-  .katex{font-size:1.04em}
-  .cover{background:linear-gradient(120deg,var(--c1),var(--c2) 60%,var(--acc));color:#fff;border-radius:10px;padding:14px 18px 13px;margin-bottom:10px}
-  .cover .k{font-size:8.5pt;letter-spacing:1.4px;text-transform:uppercase;opacity:.85;font-weight:600}
-  .cover h1{margin:3px 0 4px;font-size:20pt;line-height:1.15;font-weight:800}
-  .cover .sub{font-size:9.5pt;opacity:.92}
-  .toc{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:9px}
-  .toc span{background:rgba(255,255,255,.18);border-radius:999px;padding:2px 9px;font-size:8pt;font-weight:600}
-  h2{font-size:12.5pt;color:var(--c1);margin:13px 0 6px;display:flex;align-items:center;gap:8px;break-after:avoid;border-bottom:2px solid var(--line);padding-bottom:4px}
-  h2 .n{background:var(--c1);color:#fff;border-radius:6px;min-width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:10.5pt}
-  h3{font-size:10.3pt;color:var(--c2);margin:9px 0 4px;break-after:avoid}
-  p{margin:4px 0}
-  ul,ol{margin:3px 0 5px;padding-left:17px}
-  li{margin:1.5px 0}
-  .sec{break-inside:auto}
-  .box{border-radius:8px;padding:7px 11px;margin:6px 0;break-inside:avoid}
-  .eq{background:var(--bg1);border-left:4px solid var(--c1)}
-  .key{background:var(--bg2);border-left:4px solid var(--acc)}
-  .key b.t, .eq b.t{color:var(--c1);display:block;font-size:8.6pt;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
-  .key b.t{color:#B4561B}
-  .trap{background:#FDEEF1;border-left:4px solid var(--ko)}
-  .trap b.t{color:var(--ko);display:block;font-size:8.6pt;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
-  table{width:100%;border-collapse:separate;border-spacing:0;margin:6px 0;font-size:8.9pt;break-inside:avoid;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-  th{background:var(--c1);color:#fff;text-align:left;padding:5px 7px;font-weight:700;font-size:8.6pt}
-  td{padding:4.5px 7px;border-top:1px solid var(--line);vertical-align:top}
-  tr:nth-child(even) td{background:#FBF7F9}
-  td.ok{color:var(--ok);font-weight:600}
-  td.ko{color:var(--ko)}
-  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .two > div{break-inside:avoid}
-  .res{font-weight:700;color:var(--c1)}
-  .muted{color:var(--muted)}
-  .center{text-align:center}
-  .pb{break-before:page}
-  .foot{margin-top:12px;font-size:7.8pt;color:var(--muted);border-top:1px solid var(--line);padding-top:5px}
-  svg text{font-family:Inter, sans-serif}
-
-  @media screen{
-    html{-webkit-text-size-adjust:100%;background:#F5F6FA}
-    body{font-size:15px;line-height:1.5;max-width:820px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));background:#F5F6FA}
-    .cover{margin-top:4px}
-    .cover h1{font-size:24px}
-    .toc span a{color:#fff;text-decoration:none}
-    h2{font-size:18px;scroll-margin-top:12px}
-    h3{font-size:15.5px}
-    table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;font-size:13.5px;background:#fff}
-    th{font-size:12.5px;white-space:nowrap}
-    .box{background-clip:padding-box}
-    .katex-display{overflow-x:auto;overflow-y:hidden;padding:4px 0}
-    .pb{break-before:auto}
-    .foot{font-size:12px}
-    .tabbar{display:flex}
-  }
-  @media screen and (max-width:700px){ .two{grid-template-columns:1fr} td .katex,th .katex{white-space:nowrap} td{min-width:92px} td:first-child{min-width:110px} }
-  @media print{ .tabbar{display:none!important} }
-  .tabbar{display:none;position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #E3E6EF;padding:6px 0 calc(6px + env(safe-area-inset-bottom));justify-content:space-around;z-index:10;font-family:Inter,system-ui,sans-serif}
-  .tabbar a{flex:1;text-align:center;text-decoration:none;color:#6B7090;font-size:11.5px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px}
-  .tabbar a .i{font-size:21px;line-height:1}
-  .tabbar a.on{color:#2B5CF6}
+:root{--c1:#6B1F4F;--c2:#8A2D65;--acc:#E2742F;--ink:#1d1f2b;--muted:#5d6275;--bg:#F5F6FA;--bg1:#F7EEF3;--bg2:#FFF4EA;--line:#E9DDE4;--ok:#2F8F5B;--ko:#C33055;--blue:#2B5CF6}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;background:var(--bg)}
+body{margin:0;font-family:Inter,-apple-system,system-ui,sans-serif;color:var(--ink);font-size:16px;line-height:1.5;background:var(--bg)}
+.katex{font-size:1.06em}
+.wrap{max-width:760px;margin:0 auto;padding:0 calc(14px + env(safe-area-inset-right)) calc(96px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left))}
+/* barre du haut */
+.top{position:sticky;top:0;z-index:20;background:var(--c1);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 0 0}
+.top .t{max-width:760px;margin:0 auto;padding:0 16px 8px;display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.top .t b{font-size:18px;font-weight:800}
+.top .t button{background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:999px;padding:5px 11px;font:600 12.5px Inter,sans-serif}
+.chipnav{display:flex;gap:7px;overflow-x:auto;padding:0 16px 10px;max-width:760px;margin:0 auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.chipnav::-webkit-scrollbar{display:none}
+.chipnav a{flex:none;color:#fff;text-decoration:none;background:rgba(255,255,255,.16);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+.chipnav a.on{background:#fff;color:var(--c1)}
+.cover{display:none}
+.intro{margin:14px 0 6px;color:var(--muted);font-size:14px}
+/* sections en accordéon */
+.sec{background:#fff;border-radius:16px;margin:12px 0;box-shadow:0 1px 6px rgba(30,20,40,.06);overflow:hidden}
+.sec>h2{margin:0;padding:14px 46px 14px 14px;font-size:17px;line-height:1.3;color:var(--c1);display:flex;align-items:center;gap:10px;cursor:pointer;position:relative;border:0;scroll-margin-top:110px;user-select:none}
+.sec>h2::after{content:"";position:absolute;right:18px;top:50%;width:9px;height:9px;border-right:2.5px solid var(--c2);border-bottom:2.5px solid var(--c2);transform:translateY(-70%) rotate(45deg);transition:transform .2s}
+.sec.closed>h2::after{transform:translateY(-30%) rotate(-45deg)}
+.sec.closed>:not(h2){display:none}
+.sec>:not(h2){margin-left:14px;margin-right:14px}
+.sec>:last-child{margin-bottom:16px}
+h2 .n{flex:none;background:var(--c1);color:#fff;border-radius:8px;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;font-size:15px}
+h3{font-size:16px;color:var(--c2);margin:16px 0 6px}
+p{margin:8px 0}
+ul,ol{margin:6px 0 8px;padding-left:20px}
+li{margin:4px 0}
+.muted{color:var(--muted)}.center{text-align:center}
+.res{font-weight:700;color:var(--c1)}
+.box{border-radius:12px;padding:10px 12px;margin:10px 0}
+.eq{background:var(--bg1);border-left:4px solid var(--c1)}
+.key{background:var(--bg2);border-left:4px solid var(--acc)}
+.trap{background:#FDEEF1;border-left:4px solid var(--ko)}
+.box b.t{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;color:var(--c1)}
+.key b.t{color:#B4561B}.trap b.t{color:var(--ko)}
+.box ul,.box ol{margin:2px 0;padding-left:18px}
+.two{display:grid;grid-template-columns:1fr;gap:0}
+@media (min-width:700px){.two{grid-template-columns:1fr 1fr;gap:12px}}
+.katex-display{margin:8px 0;padding:2px 0;overflow-x:auto;overflow-y:hidden}
+/* tableaux */
+table{width:calc(100% - 28px);border-collapse:collapse;margin:10px 14px;font-size:15px}
+.box table{width:100%;margin:8px 0}
+th{background:var(--c1);color:#fff;text-align:left;padding:8px;font-size:13px}
+td{padding:8px;border-top:1px solid var(--line);vertical-align:top}
+td.ok{color:var(--ok);font-weight:600} td.ko{color:var(--ko)}
+@media (max-width:699px){
+  table.cards,table.cards tbody{display:block;width:auto}
+  table.cards tr.hdr{display:none}
+  table.cards tr{display:block;background:#FBF8FA;border:1px solid var(--line);border-radius:12px;margin:8px 0;padding:4px 12px}
+  table.cards td{display:block;border:0;padding:6px 0;border-top:1px dashed var(--line)}
+  table.cards td:first-child{border-top:0}
+  table.cards td[data-label]::before{content:attr(data-label);display:block;font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:1px}
+  table.cards td.rowhead{font-weight:700;color:var(--c1);font-size:15.5px;padding-top:8px}
+  table.cards td.rowhead::before{display:none}
+}
+svg{max-width:100%;height:auto}
+svg text{font-family:Inter,sans-serif}
+.foot{font-size:12.5px;color:var(--muted);margin:16px 4px}
+.pb{}
+.tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #E3E6EF;padding:6px 0 calc(6px + env(safe-area-inset-bottom));justify-content:space-around;z-index:30}
+.tabbar a{flex:1;text-align:center;text-decoration:none;color:#6B7090;font-size:11.5px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabbar a .i{font-size:21px;line-height:1}.tabbar a.on{color:#2B5CF6}
 </style>
 </head>
 <body>
-
-<div class="cover">
-  <div class="k">Arts et Métiers · MDSI · Mécanique des milieux continus · 2026-2027</div>
-  <h1>Fiche de révision MMC</h1>
-  <div class="sub">Formulation forte, méthode des déplacements (Navier) et formulation faible (PTV, PPV, énergie) — cours de B. Moya</div>
-  <div class="toc"><span><a href="#s1">1 · Équations</a></span><span><a href="#s2">2 · Conditions aux limites</a></span><span><a href="#s3">3 · Modèles plans</a></span><span><a href="#s4">4 · Navier / Beltrami</a></span><span><a href="#s5">5 · Problèmes 1D</a></span><span><a href="#s6">6 · Forme faible</a></span><span><a href="#s7">7 · Exercices corrigés</a></span><span><a href="#s8">8 · Pièges QCM</a></span></div>
-</div>
+<header class="top"><div class="t"><b>Fiche MMC</b><button id="tog">Tout ouvrir</button></div><nav class="chipnav"><a href="#s1" data-s="1">1 · Équations</a><a href="#s2" data-s="2">2 · Limites</a><a href="#s3" data-s="3">3 · Modèles plans</a><a href="#s4" data-s="4">4 · Navier</a><a href="#s5" data-s="5">5 · 1D</a><a href="#s6" data-s="6">6 · Forme faible</a><a href="#s7" data-s="7">7 · Exercices</a><a href="#s8" data-s="8">8 · Pièges QCM</a></nav></header>
+<div class="wrap">
+<p class="intro">Formulation forte, méthode des déplacements (Navier) et formulation faible — cours de B. Moya. Touche une section pour l’ouvrir ou la fermer.</p>
 
 <!-- 1 -->
 <div class="sec">
@@ -117,8 +115,11 @@ $\dfrac{\partial\sigma_{ij}}{\partial x_j}+f_i=0$ &nbsp;·&nbsp; $t=\sigma\cdot 
 </div>
 
 <div class="box eq"><b class="t">Loi de Hooke isotrope (directe et inverse)</b>
-$$\sigma=\lambda\,\mathrm{tr}(\varepsilon)\,I+2\mu\,\varepsilon \qquad\qquad \varepsilon=\frac{1+\nu}{E}\,\sigma-\frac{\nu}{E}\,\mathrm{tr}(\sigma)\,I$$
-$$\mu=G=\frac{E}{2(1+\nu)}\qquad \lambda=\frac{E\nu}{(1+\nu)(1-2\nu)}\qquad 3K=3\lambda+2\mu=\frac{E}{1-2\nu}$$
+$$\sigma=\lambda\,\mathrm{tr}(\varepsilon)\,I+2\mu\,\varepsilon$$
+$$\varepsilon=\frac{1+\nu}{E}\,\sigma-\frac{\nu}{E}\,\mathrm{tr}(\sigma)\,I$$
+$$\mu=G=\frac{E}{2(1+\nu)}$$
+$$\lambda=\frac{E\nu}{(1+\nu)(1-2\nu)}$$
+$$3K=3\lambda+2\mu=\frac{E}{1-2\nu}$$
 </div>
 <div class="box trap"><b class="t">Piège</b>$\sigma=E\varepsilon$ n'est valable qu'en traction 1D, jamais « dans toutes les situations 3D ».</div>
 </div>
@@ -171,14 +172,16 @@ $$\mu=G=\frac{E}{2(1+\nu)}\qquad \lambda=\frac{E\nu}{(1+\nu)(1-2\nu)}\qquad 3K=3
 <tr><td><b>Exemples</b></td><td>Tôle, plaque percée, panneau aéro, carrosserie</td><td>Tunnel, barrage, mur de soutènement, cylindre long</td></tr>
 </table>
 <div class="box eq"><b class="t">Hooke en contraintes planes</b>
-$$\sigma_{xx}=\frac{E}{1-\nu^2}(\varepsilon_{xx}+\nu\varepsilon_{yy})\qquad \sigma_{yy}=\frac{E}{1-\nu^2}(\varepsilon_{yy}+\nu\varepsilon_{xx})\qquad \sigma_{xy}=\frac{E}{1+\nu}\varepsilon_{xy}$$
+$$\sigma_{xx}=\frac{E}{1-\nu^2}(\varepsilon_{xx}+\nu\varepsilon_{yy})$$
+$$\sigma_{yy}=\frac{E}{1-\nu^2}(\varepsilon_{yy}+\nu\varepsilon_{xx})$$
+$$\sigma_{xy}=\frac{E}{1+\nu}\,\varepsilon_{xy}$$
 </div>
 <p><b>Exercice CM1</b> ($E=210$ GPa, $\nu=0{,}30$, $\sigma_{11}=100$ MPa, $\sigma_{22}=0$) : contraintes planes $\varepsilon_{33}=-0{,}3\times100/210\,000=$ <span class="res">$-1{,}43\times10^{-4}$</span> ; déformations planes $\sigma_{33}=0{,}3\times100=$ <span class="res">30 MPa</span>.</p>
 </div>
 
 <!-- 4 -->
 <div class="sec">
-<h2 id="s4" class="pb"><span class="n">4</span> Formulation forte : Navier (déplacements) ou Beltrami (contraintes)</h2>
+<h2 id="s4"><span class="n">4</span> Formulation forte : Navier (déplacements) ou Beltrami (contraintes)</h2>
 <p>La <b>formulation forte</b> = les équations écrites point par point dans $\Omega$ + les CL sur $\partial\Omega$ (équilibre, cinématique, comportement, Dirichlet, Neumann). Elle exige des champs réguliers (dérivées secondes de $u$).</p>
 <table>
 <tr><th></th><th>Méthode des déplacements (Navier)</th><th>Méthode des contraintes (Beltrami–Michell)</th></tr>
@@ -188,8 +191,9 @@ $$\sigma_{xx}=\frac{E}{1-\nu^2}(\varepsilon_{xx}+\nu\varepsilon_{yy})\qquad \sig
 <tr><td><b>À vérifier</b></td><td>Navier + CL</td><td>Compatibilité (Saint-Venant) + CL</td></tr>
 </table>
 <div class="box eq"><b class="t">Équations de Navier–Lamé (statique, homogène isotrope)</b>
-$$\mu\,\Delta\mathbf u+(\lambda+\mu)\,\nabla(\nabla\!\cdot\mathbf u)+\mathbf f=\mathbf 0
-\quad\Longleftrightarrow\quad G\,\nabla^2\mathbf u+(\lambda+G)\,\nabla(\nabla\!\cdot\mathbf u)+\mathbf b=\mathbf 0$$
+$$\mu\,\Delta\mathbf u+(\lambda+\mu)\,\nabla(\nabla\!\cdot\mathbf u)+\mathbf f=\mathbf 0$$
+<p class="center muted" style="margin:0">soit, avec $\mu=G$ :</p>
+$$G\,\nabla^2\mathbf u+(\lambda+G)\,\nabla(\nabla\!\cdot\mathbf u)+\mathbf b=\mathbf 0$$
 <span class="muted">En dynamique, le second membre devient $\rho\ddot{\mathbf u}$. Navier = « 3 formules en une ».</span>
 </div>
 <div class="two">
@@ -240,11 +244,14 @@ $$(EA\,u')'+Af=0\ \Rightarrow\ E\,u''+f=0$$
 <li>Intégrer par parties (divergence) ; $\sigma$ symétrique ⇒ $\sigma:\nabla\delta u=\sigma:\delta\varepsilon$.</li>
 <li>Utiliser les CL : $\sigma n=\bar t$ sur $\Gamma_t$ et $\delta u=0$ sur $\Gamma_u$.</li>
 </ol>
-$$\int_\Omega(\nabla\!\cdot\sigma)\cdot\delta u\,d\Omega=\int_{\partial\Omega}(\sigma n)\cdot\delta u\,d\Gamma-\int_\Omega\sigma:\nabla\delta u\,d\Omega$$
+$$\int_\Omega(\nabla\!\cdot\sigma)\cdot\delta u\,d\Omega$$
+$$=\int_{\partial\Omega}(\sigma n)\cdot\delta u\,d\Gamma-\int_\Omega\sigma:\nabla\delta u\,d\Omega$$
 </div>
 
 <div class="box eq"><b class="t">Principe des travaux virtuels (PTV), statique</b>
-$$\underbrace{\int_\Omega\sigma:\delta\varepsilon\,d\Omega}_{\delta W_{int}}=\underbrace{\int_\Omega b\cdot\delta u\,d\Omega+\int_{\Gamma_t}\bar t\cdot\delta u\,d\Gamma}_{\delta W_{ext}}\qquad\forall\,\delta u\ \text{admissible}\ (\delta u=0\ \text{sur}\ \Gamma_u)$$
+$$\underbrace{\int_\Omega\sigma:\delta\varepsilon\,d\Omega}_{\delta W_{int}}$$
+$$=\underbrace{\int_\Omega b\cdot\delta u\,d\Omega+\int_{\Gamma_t}\bar t\cdot\delta u\,d\Gamma}_{\delta W_{ext}}$$
+<p class="center muted" style="margin:0">pour tout $\delta u$ admissible ($\delta u=0$ sur $\Gamma_u$)</p>
 </div>
 
 <div class="two">
@@ -266,11 +273,14 @@ $$\underbrace{\int_\Omega\sigma:\delta\varepsilon\,d\Omega}_{\delta W_{int}}=\un
 </div>
 
 <div class="box eq"><b class="t">Énergie potentielle totale</b>
-$$\Pi(u)=\underbrace{\tfrac12\int_\Omega\varepsilon(u):\mathbb C:\varepsilon(u)\,d\Omega}_{\text{énergie de déformation}}-\Big(\int_\Omega b\cdot u\,d\Omega+\int_{\Gamma_t}\bar t\cdot u\,d\Gamma\Big)$$
+$$\Pi(u)=\underbrace{\tfrac12\int_\Omega\varepsilon(u):\mathbb C:\varepsilon(u)\,d\Omega}_{\text{énergie de déformation}}$$
+$$-\Big(\int_\Omega b\cdot u\,d\Omega+\int_{\Gamma_t}\bar t\cdot u\,d\Gamma\Big)$$
 </div>
 
 <div class="box eq"><b class="t">Barre 1D en forme faible (encastrée en 0, force F en L)</b>
-$$\int_0^L EA\,u'\,\delta u'\,dx=F\,\delta u(L)\ \ \forall\delta u\ (\delta u(0)=0)\quad\Rightarrow\quad u'=\frac{F}{EA},\qquad u(x)=\frac{F}{EA}\,x$$
+$$\int_0^L EA\,u'\,\delta u'\,dx=F\,\delta u(L)$$
+<p class="center muted" style="margin:0">pour tout $\delta u$ avec $\delta u(0)=0$, d’où</p>
+$$u'=\frac{F}{EA}\qquad u(x)=\frac{F}{EA}\,x$$
 </div>
 </div>
 
@@ -345,7 +355,7 @@ $$\int_0^L EA\,u'\,\delta u'\,dx=F\,\delta u(L)\ \ \forall\delta u\ (\delta u(0)
 
 <!-- 8 -->
 <div class="sec">
-<h2 id="s8" class="pb"><span class="n">8</span> Pièges des QCM Wooclap</h2>
+<h2 id="s8"><span class="n">8</span> Pièges des QCM Wooclap</h2>
 <p class="muted">Les 7 premières lignes = les questions ratées (ou sans réponse) en cours.</p>
 <table>
 <tr><th style="width:34%">Question</th><th style="width:36%">Bonne réponse</th><th>Piège</th></tr>
@@ -373,14 +383,43 @@ $$\int_0^L EA\,u'\,\delta u'\,dx=F\,\delta u(L)\ \ \forall\delta u\ (\delta u(0)
 
 <div class="foot">Sources : support MMC 3D CM1–CM3 (B. Moya, 2026-2027), énoncés CM2, notes du 9 novembre, QCM Wooclap, support complet MMC (M. Jebahi). Les corrections des exercices A et B ont été calculées pour cette fiche : à confronter avec la correction du TD.</div>
 
-<script>
-renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],throwOnError:false});
-</script>
+</div>
 <nav class="tabbar">
   <a href="./"><span class="i">✅</span>Quiz</a>
   <a href="fiche.html" class="on"><span class="i">📘</span>Fiche</a>
   <a href="Fiche_revision_MMC.pdf" target="_blank" rel="noopener"><span class="i">📄</span>PDF</a>
 </nav>
-<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}</script>
+<script>
+renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:true},{left:"$",right:"$",display:false}],throwOnError:false});
+// tableaux -> cartes sur téléphone
+document.querySelectorAll('table').forEach(t=>{
+  const rows=[...t.querySelectorAll('tr')]; const hdr=rows.find(r=>r.querySelector('th')); if(!hdr) return;
+  const labels=[...hdr.children].map(c=>{const x=c.cloneNode(true);x.querySelectorAll('.katex-mathml').forEach(m=>m.remove());return x.textContent.replace(/\s+/g,' ').trim();});
+  hdr.classList.add('hdr'); t.classList.add('cards');
+  rows.filter(r=>r!==hdr).forEach(r=>[...r.children].forEach((td,i)=>{
+    if(i===0 && (labels[0]===''||/^(Bloc|Type|Situation|Cas|Bord|Question)$/.test(labels[0]))) td.classList.add('rowhead');
+    else if(labels[i]) td.setAttribute('data-label',labels[i]);
+  }));
+});
+// formules trop larges : réduction automatique
+function fit(){document.querySelectorAll('.katex-display').forEach(d=>{const k=d.querySelector('.katex');if(!k)return;k.style.fontSize='';const w=d.clientWidth,s=d.scrollWidth;if(s>w+1)k.style.fontSize=Math.max(.68,w/s*1.06*.98)+'em';});}
+// accordéon
+const secs=[...document.querySelectorAll('.sec')];
+let saved=null; try{saved=JSON.parse(localStorage.getItem('ficheOpen'));}catch(e){}
+secs.forEach((s,i)=>{ if(saved? !saved.includes(i): i>0) s.classList.add('closed');
+  s.querySelector('h2').addEventListener('click',()=>{s.classList.toggle('closed');save();fit();});});
+function save(){try{localStorage.setItem('ficheOpen',JSON.stringify(secs.map((s,i)=>s.classList.contains('closed')?-1:i).filter(i=>i>=0)));}catch(e){}}
+const tog=document.getElementById('tog');
+function lab(){tog.textContent=secs.every(s=>!s.classList.contains('closed'))?'Tout fermer':'Tout ouvrir';}
+tog.onclick=()=>{const all=secs.every(s=>!s.classList.contains('closed'));secs.forEach(s=>s.classList.toggle('closed',all));save();lab();fit();};
+document.querySelectorAll('.chipnav a').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();const s=document.getElementById('s'+a.dataset.s).parentElement;s.classList.remove('closed');save();lab();fit();
+  const y=s.getBoundingClientRect().top+scrollY-document.querySelector('.top').offsetHeight-8;scrollTo({top:y,behavior:'smooth'});}));
+// chip active au défilement
+const chipsEl=[...document.querySelectorAll('.chipnav a')];
+addEventListener('scroll',()=>{const off=document.querySelector('.top').offsetHeight+20;let cur=0;secs.forEach((s,i)=>{if(s.getBoundingClientRect().top-off<0)cur=i;});
+  chipsEl.forEach((c,i)=>c.classList.toggle('on',i===cur));},{passive:true});
+addEventListener('resize',fit); lab(); fit(); setTimeout(fit,400);
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
 </body>
 </html>
