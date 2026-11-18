@@ -144,3 +144,37 @@ export function countdownCls(n) { return n <= 2 ? 'urgent' : n <= 7 ? 'soon' : '
 
 export function shuffle(a) { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; }
 export function fileSize(n) { return n > 1e6 ? (n / 1e6).toFixed(1) + ' Mo' : Math.max(1, Math.round(n / 1e3)) + ' Ko'; }
+
+/* ---------- Titre coté (repris du portfolio) ---------- */
+let cotesPlayed = false;
+export function drawCotes(wrap, anim = true) {
+  const go = () => {
+    if (!wrap?.isConnected) return;
+    const svg = wrap.querySelector('.cotes'), h1 = wrap.querySelector('h1'), box = svg.getBoundingClientRect();
+    const PX2MM = 25.4 / 96, f1 = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const play = anim && !cotesPlayed && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let out = '';
+    const L = (x1, y1, x2, y2, d) => { const len = Math.hypot(x2 - x1, y2 - y1).toFixed(1); return `<line${play ? ` class="draw" style="--len:${len};--d:${d}s"` : ''} x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`; };
+    const T = (x, y, txt, d, rot) => `<text${play ? ` class="lbl" style="--d:${d}s"` : ''} x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle"${rot ? ` transform="rotate(-90 ${x.toFixed(1)} ${y.toFixed(1)})"` : ''}>${txt}</text>`;
+    let firstTop = null;
+    h1.querySelectorAll('.cw').forEach((w, i) => {
+      const r = w.getBoundingClientRect(), a = r.left - box.left, b = r.right - box.left;
+      if (firstTop === null) firstTop = r.top;
+      const above = Math.abs(r.top - firstTop) < 4, d = 0.15 + i * 0.2;
+      const cap = r.top - box.top + r.height * 0.16, base = r.bottom - box.top - r.height * 0.1;
+      const gapA = (cap - (r.top - box.top - 4)) * 2 / 3, gapB = ((r.bottom - box.top + 16) - base) * 2 / 3;
+      const y = above ? cap - gapA : base + gapB, from = above ? cap - 2 : base + 2;
+      out += L(a, from, a, y + (above ? -6 : 6), d) + L(b, from, b, y + (above ? -6 : 6), d);
+      out += L(a, y, b, y, d + 0.2) + L(a, y - 5, a, y + 5, d + 0.2) + L(b, y - 5, b, y + 5, d + 0.2);
+      out += T((a + b) / 2, above ? y - 7 : y + 15, f1.format((b - a) * PX2MM), d + 0.7);
+    });
+    const hr = h1.getBoundingClientRect(), x = -16, y1 = hr.top - box.top + hr.height * 0.1, y2 = hr.bottom - box.top - hr.height * 0.06;
+    if (box.left > 30) out += L(x, y1, x, y2, 0.5) + L(x - 5, y1, x + 5, y1, 0.5) + L(x - 5, y2, x + 5, y2, 0.5) + T(x - 7, (y1 + y2) / 2, f1.format((y2 - y1) * PX2MM), 1.1, true);
+    svg.innerHTML = out;
+    if (play) cotesPlayed = true;
+  };
+  if (document.fonts?.ready) document.fonts.ready.then(go); else go();
+}
+export function cotedTitle(words) {
+  return `<div class="h4-name"><h1 class="mega">${words.map((w) => `<span class="cw">${esc(w)}</span>`).join(' ')}<span class="dot">.</span></h1><svg class="cotes" aria-hidden="true"></svg></div>`;
+}

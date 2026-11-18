@@ -1,5 +1,5 @@
-import { esc, icon, fmt, daysUntil, countdownLabel, countdownCls, ymd } from '../ui.js';
-import { store, settings, getAll, subjectOf, PATHS } from '../store.js';
+import { esc, icon, fmt, daysUntil, countdownLabel, countdownCls, ymd, drawCotes, cotedTitle } from '../ui.js';
+import { store, settings, getAll, subjectOf, PATHS, coverOf, shortName } from '../store.js';
 import { loadEdt, eventsOfDay, upcomingExams } from '../edt.js';
 import { dueCards } from './flashcards.js';
 
@@ -8,78 +8,95 @@ export async function render(el) {
   el.innerHTML = `<div class="empty"><span class="spinner"></span></div>`;
   const [{ subjects, courses, events }, edt, progress] = await Promise.all([getAll(), loadEdt(), store.json(PATHS.progress)]);
   const now = new Date();
-  const hour = now.getHours();
-  const prenom = settings.get('prenom', '');
-  const hello = (hour < 5 || hour >= 18 ? 'Bonsoir' : 'Bonjour') + (prenom ? ` ${prenom}` : '');
+  const prenom = settings.get('prenom', '') || 'Yann';
+  const hello = now.getHours() < 5 || now.getHours() >= 18 ? 'Bonsoir' : 'Bonjour';
 
   // cours du jour (ou du prochain jour avec cours)
-  let day = new Date(), todays = eventsOfDay(edt.events, day).filter((e) => !e.allDay);
-  let dayLabel = 'Aujourd’hui';
+  let todays = eventsOfDay(edt.events, now).filter((e) => !e.allDay);
+  let dayLabel = 'Aujourd’hui', dayOffset = 0;
   if (!todays.length || todays.every((e) => e.end < now)) {
     for (let i = 1; i < 8; i++) {
       const d = new Date(Date.now() + i * 86400000);
       const evs = eventsOfDay(edt.events, d).filter((e) => !e.allDay);
-      if (evs.length) { day = d; todays = evs; dayLabel = i === 1 ? 'Demain' : fmt.day(d); break; }
+      if (evs.length) { todays = evs; dayOffset = i; dayLabel = i === 1 ? 'Demain' : fmt.day(d); break; }
     }
   }
+  const left = dayOffset ? todays.length : todays.filter((e) => e.end > now).length;
 
-  // échéances : agenda + évaluations détectées dans l'EDT
   const deadlines = events.filter((e) => !e.done && daysUntil(e.date) >= 0).map((e) => ({ ...e, n: daysUntil(e.date) }));
   const known = new Set(deadlines.map((e) => e.edtUid).filter(Boolean));
   upcomingExams(edt.events, 60).forEach((x) => { if (!known.has(x.uid + ymd(x.start))) deadlines.push({ title: x.title, type: 'controle', date: ymd(x.start), time: fmt.time(x.start), n: daysUntil(ymd(x.start)), fromEdt: true }); });
   deadlines.sort((a, b) => a.n - b.n);
+  const week = deadlines.filter((d) => d.n <= 7).length;
 
   const due = dueCards(courses, progress, await cardsIndex(courses)).length;
   const pending = courses.filter((c) => c.status === 'pending').length;
-  const recent = [...courses].sort((a, b) => (b.addedAt || '').localeCompare(a.addedAt || '')).slice(0, 4);
+  const ready = courses.filter((c) => c.status === 'done').length;
+
+  const plural = (n, a, b) => `${n} ${n > 1 ? b : a}`;
+  const line1 = edt.empty ? 'Ton emploi du temps n’est pas encore branché.' : left ? `${plural(left, 'cours', 'cours')} ${dayOffset ? (dayOffset === 1 ? 'demain' : 'à venir') : 'encore aujourd’hui'}` : 'Plus de cours aujourd’hui';
+  const line2 = week ? ` et ${plural(week, 'échéance', 'échéances')} dans les 7 jours.` : ', rien d’urgent cette semaine.';
 
   el.innerHTML = `
-  <div class="hero">
-    <h1>${esc(hello)} 👋</h1>
-    <p>${esc(fmt.day(now))}</p>
-    <div class="stats">
-      <div class="stat"><b>${courses.length}</b><span>cours</span></div>
-      <div class="stat"><b>${deadlines.filter((d) => d.n <= 14).length}</b><span>échéances sous 15 j</span></div>
-      <div class="stat"><b>${due}</b><span>cartes à revoir</span></div>
-      ${pending ? `<div class="stat"><b>${pending}</b><span>en attente de Claude</span></div>` : ''}
+  <section class="hello">
+    <div class="hello-text">
+      <p class="eyebrow">${esc(cap(fmt.day(now)))}</p>
+      ${cotedTitle([hello, prenom])}
+      <p class="lead-short">${esc(line1)}<em>${esc(line2)}</em></p>
+      <div class="cta"><a class="btn primary" href="#/cartes">${icon('cards')} Réviser ${due ? `${due} cartes` : 'maintenant'}</a><a class="btn" href="#/edt">Emploi du temps</a></div>
     </div>
+    <div class="hello-media"><img src="media/couvertures/accueil.webp" alt="" decoding="async"><span class="ai-dot"></span></div>
+  </section>
+
+  <div class="figs">
+    <a class="fig" href="#/cours"><span class="val">${courses.length}</span><span class="lab">cours dans l’appli</span></a>
+    <a class="fig" href="#/cours"><span class="val">${ready}</span><span class="lab">fiches prêtes${pending ? `, ${pending} en préparation par Claude` : ''}</span></a>
+    <a class="fig" href="#/agenda"><span class="val">${deadlines.filter((d) => d.n <= 14).length}</span><span class="lab">échéances sous 15 jours</span></a>
+    <a class="fig" href="#/cartes"><span class="val">${due}</span><span class="lab">flashcards à revoir</span></a>
   </div>
-  <div class="grid cols-2">
-    <section class="card">
-      <h2>${icon('calendar')} ${esc(dayLabel)}</h2>
-      ${edt.empty ? `<div class="empty small">Emploi du temps pas encore configuré. <a href="#/reglages">Ajouter le lien ICS</a></div>` :
-        todays.length ? todays.map((e) => {
+
+  <section class="sec two">
+    <div>
+      <div class="sec-head"><h2>${esc(cap(dayLabel))}</h2><a class="btn sm ghost" href="#/edt">Semaine</a></div>
+      ${edt.empty ? `<div class="empty-state"><span class="ghost-word">EDT</span><div><strong>Pas encore d’emploi du temps</strong>Ajoute le lien ICS dans les <a href="#/reglages">réglages</a>.</div></div>` :
+        todays.length ? `<div class="list">${todays.map((e) => {
           const isNow = e.start <= now && e.end > now;
           return `<div class="class-item ${isNow ? 'now' : ''}">
-            <div class="time">${fmt.time(e.start)}<br><span class="muted small">${fmt.time(e.end)}</span></div>
+            <div class="time">${fmt.time(e.start)}<br><span class="muted">${fmt.time(e.end)}</span></div>
             <div class="bar" style="background:${e.cls.color}"></div>
-            <div class="grow"><div class="title">${esc(e.title)}</div><div class="muted small">${e.location ? icon('pin', '') .replace('<svg', '<svg style="width:13px;height:13px;vertical-align:-2px"') + ' ' + esc(e.location) : ''}${e.cls.label ? ` · ${e.cls.label}` : ''}</div></div>
+            <div><div class="title">${esc(e.title)}</div><div class="small">${esc(e.location || '')}${e.cls.label ? ` · ${e.cls.label}` : ''}${isNow ? ' · <b style="color:var(--gold-ink)">en ce moment</b>' : ''}</div></div>
           </div>`;
-        }).join('') : `<div class="empty small">Rien de prévu cette semaine 🎉</div>`}
-      <div class="row" style="margin-top:10px"><a class="btn sm" href="#/edt">Voir la semaine</a></div>
-    </section>
-    <section class="card">
-      <h2>${icon('flag')} À venir</h2>
+        }).join('')}</div>` : `<p class="muted">Rien de prévu cette semaine.</p>`}
+    </div>
+    <div>
+      <div class="sec-head"><h2>À venir</h2><a class="btn sm ghost" href="#/agenda">Agenda</a></div>
       ${deadlines.length ? `<div class="list">${deadlines.slice(0, 6).map((d) => `
         <div class="list-item"><div class="countdown ${countdownCls(d.n)}">${countdownLabel(d.n)}</div>
-        <div class="grow"><div class="title ellipsis">${esc(d.title)}</div><div class="muted small">${esc(fmt.short(d.date + 'T12:00'))}${d.time ? ' · ' + esc(d.time) : ''}${d.subjectId ? ' · ' + esc(subjectOf(subjects, d.subjectId).name) : ''}${d.fromEdt ? ' · détecté dans l’EDT' : ''}</div></div></div>`).join('')}</div>`
-        : `<div class="empty small">Aucune échéance enregistrée.</div>`}
-      <div class="row" style="margin-top:10px"><a class="btn sm" href="#/agenda">Ouvrir l’agenda</a></div>
-    </section>
-    <section class="card">
-      <h2>${icon('brain')} Réviser maintenant</h2>
-      <p class="muted">${due ? `<b>${due}</b> flashcard(s) à revoir aujourd’hui.` : 'Aucune flashcard en retard. Tu peux lancer un quiz.'}</p>
-      <div class="row"><a class="btn primary" href="#/cartes">${icon('cards')} Flashcards</a><a class="btn accent" href="#/revision">${icon('play')} Quiz</a></div>
-    </section>
-    <section class="card">
-      <h2>${icon('book')} Derniers cours</h2>
-      ${recent.length ? `<div class="list">${recent.map((c) => {
-        const s = subjectOf(subjects, c.subjectId);
-        return `<a class="list-item" href="#/c/${encodeURIComponent(c.id)}" style="text-decoration:none;color:inherit"><span class="dot" style="background:${s.color}"></span>
-        <div class="grow"><div class="title ellipsis">${esc(c.title)}</div><div class="muted small">${esc(s.name)}</div></div>${statusBadge(c)}</a>`;
-      }).join('')}</div>` : `<div class="empty small">Pas encore de cours. <a href="#/cours">Ajouter ton premier PDF</a></div>`}
-    </section>
-  </div>`;
+        <div class="grow"><div class="title">${esc(d.title)}</div><div class="small">${esc(fmt.short(d.date + 'T12:00'))}${d.time ? ' · ' + esc(d.time) : ''}${d.subjectId ? ' · ' + esc(subjectOf(subjects, d.subjectId).name) : ''}${d.fromEdt ? ' · détecté dans l’EDT' : ''}</div></div></div>`).join('')}</div>`
+        : `<p class="muted">Aucune échéance enregistrée. <a href="#/agenda">En ajouter une</a></p>`}
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-head"><div><h2>Mes matières</h2><p>${subjects.length} matières, ${courses.length} cours</p></div><a class="btn sm ghost" href="#/cours">Tout voir</a></div>
+    <div class="grid cards">${subjects.map((s) => subjectCard(s, courses)).join('')}</div>
+  </section>`;
+  drawCotes(el.querySelector('.h4-name'));
+  const onResize = () => drawCotes(el.querySelector('.h4-name'), false);
+  addEventListener('resize', onResize);
+  return { destroy: () => removeEventListener('resize', onResize) };
+}
+
+const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+
+export function subjectCard(s, courses) {
+  const cs = courses.filter((c) => c.subjectId === s.id);
+  const done = cs.filter((c) => c.status === 'done').length;
+  return `<a class="pcard" style="--c:${s.color}" href="#/cours/${encodeURIComponent(s.id)}">
+    <span class="pc-pic"><img src="${coverOf(s)}" alt="" loading="lazy" decoding="async"><span class="ai-dot"></span></span>
+    <span class="pc-body"><span class="pc-where">${esc(s.ue || shortName(s))}</span><span class="pc-title">${esc(s.name)}</span>
+    <span class="pc-sub">${cs.length} cours · ${done} fiche${done > 1 ? 's' : ''} prête${done > 1 ? 's' : ''}</span>
+    <span class="pc-bar"><span style="width:${cs.length ? (done / cs.length) * 100 : 0}%"></span></span></span></a>`;
 }
 
 export function statusBadge(c) {
@@ -103,23 +120,26 @@ export async function cardsIndex(courses) {
 
 function onboarding(el) {
   el.innerHTML = `
-  <div class="hero"><h1>Bienvenue dans Mon ENSAM</h1><p>Ton espace de cours, de révisions et d’organisation, aux couleurs de l’école.</p></div>
-  <div class="grid cols-2">
-    <section class="card">
-      <h2>Mise en route (10 min, une seule fois)</h2>
+  <section class="hello">
+    <div class="hello-text">
+      <p class="eyebrow">Arts et Métiers · PGE</p>
+      ${cotedTitle(['Mon', 'ENSAM'])}
+      <p class="lead-short">Tes cours, tes fiches et tes quiz <em>au même endroit, sur Mac, iPad et iPhone.</em></p>
+      <div class="cta"><a class="btn primary" href="#/reglages">${icon('gear')} Brancher mon dépôt</a></div>
+    </div>
+    <div class="hello-media"><img src="media/couvertures/accueil.webp" alt=""><span class="ai-dot"></span></div>
+  </section>
+  <section class="sec two">
+    <div><div class="sec-head"><h2>Mise en route</h2></div>
       <ol class="steps">
-        <li>Sur GitHub, crée un dépôt <b>privé</b> nommé <span class="kbd">ensam-data</span> (vide).</li>
-        <li>Crée un jeton « fine-grained » limité à ce dépôt, avec les permissions <b>Contents</b>, <b>Actions</b> et <b>Workflows</b> en lecture/écriture.</li>
-        <li>Dans <a href="#/reglages">Réglages</a>, colle le dépôt et le jeton, puis clique « Préparer le dépôt ».</li>
+        <li>Sur GitHub, un dépôt <b>privé</b> <span class="kbd">ensam-data</span>.</li>
+        <li>Un jeton « fine-grained » limité à ce dépôt : <b>Contents</b> et <b>Actions</b> en lecture/écriture.</li>
+        <li>Dans <a href="#/reglages">Réglages</a>, colle le dépôt et le jeton.</li>
         <li>Ajoute le lien ICS de ton emploi du temps.</li>
-        <li>Demande à Claude de créer la tâche planifiée qui traite tes cours.</li>
-      </ol>
-      <a class="btn primary" href="#/reglages">${icon('gear')} Ouvrir les réglages</a>
-    </section>
-    <section class="card">
-      <h2>Juste pour voir ?</h2>
-      <p class="muted">Charge des données d’exemple en mode « essai local » pour découvrir les fiches, les quiz, l’EDT et l’agenda sans rien configurer.</p>
-      <a class="btn accent" href="#/reglages">Essai local → « Charger des données d’exemple »</a>
-    </section>
-  </div>`;
+      </ol></div>
+    <div><div class="sec-head"><h2>Juste pour voir</h2></div>
+      <p class="muted" style="margin-bottom:16px">Réglages → « Essai local » → « Charger des données d’exemple » pour tout découvrir sans rien configurer.</p>
+      <a class="btn" href="#/reglages">Essai local</a></div>
+  </section>`;
+  drawCotes(el.querySelector('.h4-name'));
 }

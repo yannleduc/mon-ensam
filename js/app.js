@@ -5,7 +5,7 @@ const ROUTES = [
   { id: 'home', path: '', label: 'Accueil', icon: 'home', load: () => import('./views/home.js') },
   { id: 'cours', path: 'cours', label: 'Cours', icon: 'book', load: () => import('./views/courses.js') },
   { id: 'revision', path: 'revision', label: 'Révisions', icon: 'brain', load: () => import('./views/revise.js') },
-  { id: 'edt', path: 'edt', label: 'Emploi du temps', short: 'EDT', icon: 'calendar', load: () => import('./views/edt.js') },
+  { id: 'edt', path: 'edt', label: 'Emploi du temps', short: 'Emploi du temps', icon: 'calendar', load: () => import('./views/edt.js') },
   { id: 'agenda', path: 'agenda', label: 'Agenda', icon: 'flag', load: () => import('./views/agenda.js') },
   { id: 'reglages', path: 'reglages', label: 'Réglages', icon: 'gear', load: () => import('./views/settings.js') },
 ];
@@ -22,16 +22,14 @@ function applyTheme() {
 }
 
 function buildNav() {
-  $('#nav').innerHTML = ROUTES.map((r) => `<a href="#/${r.path}" data-nav="${r.id}">${icon(r.icon)}<span>${r.label}</span></a>`).join('');
-  $('#tabbar').innerHTML = ROUTES.map((r) => `<a href="#/${r.path}" data-nav="${r.id}">${icon(r.icon)}<span>${r.short || r.label}</span></a>`).join('');
+  $('#nav').innerHTML = ROUTES.map((r) => `<a class="tab ${r.id === 'reglages' ? 'icon-only' : ''}" href="#/${r.path}" data-nav="${r.id}" title="${r.label}">${r.id === 'reglages' ? icon(r.icon) : ''}<span>${r.short || r.label}</span></a>`).join('');
+  $('#tabbar').innerHTML = ROUTES.map((r) => `<a href="#/${r.path}" data-nav="${r.id}">${icon(r.icon)}<span>${r.id === 'edt' ? 'EDT' : r.short || r.label}</span></a>`).join('');
 }
 
 function updateSyncStatus() {
   const el = $('#sync-status');
-  if (store.mode === 'github') el.innerHTML = `${icon('cloud', 'small')} ${esc(store.repo)}${store.online ? '' : ' · hors-ligne'}`;
-  else if (store.mode === 'local') el.textContent = 'Essai local (pas de synchro)';
-  else el.textContent = 'Non configuré';
-  el.querySelector('svg')?.setAttribute('style', 'width:14px;height:14px;vertical-align:-2px');
+  el.className = 'sync' + (store.mode === 'none' ? ' none' : store.online && store.mode === 'github' ? '' : ' off');
+  el.textContent = store.mode === 'github' ? (store.online ? 'Synchronisé' : 'Hors-ligne') : store.mode === 'local' ? 'Essai local' : 'Non configuré';
 }
 
 let current = null;
@@ -44,15 +42,15 @@ export async function route() {
   if (EXTRA[head]) { def = EXTRA[head]; navId = def.nav; }
   else { def = ROUTES.find((r) => r.path === head) || ROUTES[0]; navId = def.id; }
   if (!store.ready && !['reglages'].includes(navId) && head !== '') { /* accueil gère l'onboarding */ }
-  document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('active', a.dataset.nav === navId));
+  document.querySelectorAll('[data-nav]').forEach((a) => { if (a.dataset.nav === navId) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   const view = $('#view');
   const token = ++renderToken;
   current?.destroy?.();
   try {
     const mod = await def.load();
     if (token !== renderToken) return;
-    view.innerHTML = '';
-    current = (await mod.render(view, params)) || null;
+    const swap = async () => { view.innerHTML = ''; current = (await mod.render(view, params)) || null; };
+    if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) await document.startViewTransition(swap).updateCallbackDone; else await swap();
     view.focus({ preventScroll: true });
     if (!location.hash.includes('#keep')) window.scrollTo(0, 0);
   } catch (e) {

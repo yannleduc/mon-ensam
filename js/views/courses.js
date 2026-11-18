@@ -1,51 +1,54 @@
 import { $, esc, icon, toast, modal, fileSize, confirmDialog } from '../ui.js';
-import { store, getAll, subjectOf, PATHS, uid, slug, SUBJECT_COLORS } from '../store.js';
-import { statusBadge } from './home.js';
+import { store, getAll, subjectOf, PATHS, uid, slug, SUBJECT_COLORS, COVERS, coverOf, shortName } from '../store.js';
+import { statusBadge, subjectCard } from './home.js';
 
 const ACCEPT = '.pdf,.pptx,.ppt,.docx,.doc,.odt,.odp,.txt,.md,.png,.jpg,.jpeg,.heic,.webp,.xlsx,.csv';
 const MAX = 90 * 1024 * 1024;
 
 export async function render(el, [subjectId]) {
-  if (!store.ready) { el.innerHTML = `<div class="card empty">Configure d’abord le stockage. <a href="#/reglages">Réglages</a></div>`; return; }
+  if (!store.ready) { el.innerHTML = `<div class="empty">Configure d’abord le stockage. <a href="#/reglages">Réglages</a></div>`; return; }
   el.innerHTML = `<div class="empty"><span class="spinner"></span></div>`;
   const { subjects, courses } = await getAll();
   const subject = subjectId ? subjects.find((s) => s.id === subjectId) : null;
   let q = '';
+  const mine = subject ? courses.filter((c) => c.subjectId === subject.id) : courses;
 
   const draw = () => {
     const filt = (c) => !q || `${c.title} ${c.summary || ''} ${(c.keywords || []).join(' ')} ${c.fileName}`.toLowerCase().includes(q);
-    const list = courses.filter((c) => (!subject || c.subjectId === subject.id) && filt(c)).sort((a, b) => (b.addedAt || '').localeCompare(a.addedAt || ''));
     const body = $('#body', el);
     if (subject || q) {
-      body.innerHTML = list.length ? `<div class="grid cards">${list.map((c) => courseCard(c, subjects)).join('')}</div>`
-        : `<div class="card empty">${icon('file')}<p>${q ? 'Aucun cours ne correspond.' : 'Aucun cours dans cette matière pour l’instant.'}</p></div>`;
+      const list = mine.filter(filt).sort((a, b) => (a.addedAt || '').localeCompare(b.addedAt || ''));
+      body.innerHTML = list.length ? `<div class="clist">${list.map((c, i) => courseRow(c, i, subjects, !subject)).join('')}</div>`
+        : `<div class="empty-state"><span class="ghost-word">0</span><div><strong>${q ? 'Aucun cours ne correspond' : 'Pas encore de cours ici'}</strong>${q ? 'Essaie un autre mot.' : 'Ajoute un PDF : Claude en fera une fiche, un quiz et des flashcards.'}</div></div>`;
     } else {
-      body.innerHTML = subjects.length ? `<div class="grid cards">${subjects.map((s) => {
-        const cs = courses.filter((c) => c.subjectId === s.id);
-        const done = cs.filter((c) => c.status === 'done').length;
-        return `<a class="card card-link subject-card" style="--c:${s.color}" href="#/cours/${encodeURIComponent(s.id)}">
-          <h2 style="margin-bottom:4px">${esc(s.name)}</h2>
-          <div class="count">${cs.length} cours · ${done} fiche(s) prête(s)</div>
-          ${s.ue ? `<div class="small muted" style="margin-top:6px">${esc(s.ue)}</div>` : ''}
-        </a>`;
-      }).join('')}</div>
-      ${courses.filter((c) => !subjects.find((s) => s.id === c.subjectId)).length ? `<h2 style="margin-top:24px">Sans matière</h2><div class="grid cards">${courses.filter((c) => !subjects.find((s) => s.id === c.subjectId)).map((c) => courseCard(c, subjects)).join('')}</div>` : ''}`
-        : `<div class="card empty">${icon('book')}<p>Commence par créer une matière (ex. « Mécanique des solides », « Analyse de la valeur »), puis dépose tes PDF.</p><button class="btn primary" id="first-subject">${icon('plus')} Créer une matière</button></div>`;
+      const orphans = courses.filter((c) => !subjects.find((s) => s.id === c.subjectId));
+      body.innerHTML = subjects.length ? `<div class="grid cards">${subjects.map((s) => subjectCard(s, courses)).join('')}</div>
+        ${orphans.length ? `<section class="sec"><div class="sec-head"><h2>Sans matière</h2></div><div class="clist">${orphans.map((c, i) => courseRow(c, i, subjects)).join('')}</div></section>` : ''}`
+        : `<div class="empty-state"><span class="ghost-word">S1</span><div><strong>Commence par une matière</strong>Par exemple « Résistance des matériaux », puis dépose tes PDF.<div style="margin-top:12px"><button class="btn primary" id="first-subject">${icon('plus')} Créer une matière</button></div></div></div>`;
       $('#first-subject', el)?.addEventListener('click', () => editSubject());
     }
   };
 
-  el.innerHTML = `
-  <div class="page-head">
-    <div>${subject ? `<div class="crumbs"><a href="#/cours">Cours</a> /</div>` : ''}
-      <h1>${subject ? `<span class="dot" style="background:${subject.color};width:14px;height:14px"></span> ${esc(subject.name)}` : 'Mes cours'}</h1>
-      <div class="sub">${subject ? `${courses.filter((c) => c.subjectId === subject.id).length} cours` : `${subjects.length} matière(s) · ${courses.length} cours`}</div></div>
-    <div class="row">
-      ${subject ? `<button class="btn ghost" id="edit-subject">${icon('edit')} Modifier</button>` : `<button class="btn" id="new-subject">${icon('plus')} Matière</button>`}
-      <button class="btn primary" id="add">${icon('upload')} Ajouter des cours</button>
+  const done = mine.filter((c) => c.status === 'done').length;
+  el.innerHTML = subject ? `
+  <nav class="crumbs"><a href="#/">Accueil</a><span>/</span><a href="#/cours">Cours</a><span>/</span><span>${esc(subject.name)}</span></nav>
+  <header class="subj-head" style="--c:${subject.color}">
+    <p class="subj-word" aria-hidden="true">${esc(shortName(subject))}</p>
+    <div class="row" style="justify-content:space-between;align-items:end;gap:18px">
+      <div style="display:grid;gap:10px"><h1>${esc(subject.name)}</h1>
+        <dl class="facts"><div><dt>Cours</dt><dd>${mine.length}</dd></div><div><dt>Fiches prêtes</dt><dd>${done}</dd></div>${mine.length - done ? `<div><dt>Chez Claude</dt><dd>${mine.length - done}</dd></div>` : ''}${subject.prof ? `<div><dt>Enseignant·e</dt><dd>${esc(subject.prof)}</dd></div>` : ''}</dl></div>
+      <div class="cta"><button class="btn ghost" id="edit-subject">${icon('edit')} Modifier</button><a class="btn" href="#/cartes/${encodeURIComponent(subject.id)}">${icon('cards')} Réviser</a><button class="btn primary" id="add">${icon('upload')} Ajouter</button></div>
     </div>
-  </div>
-  <div style="margin-bottom:16px;position:relative"><input type="search" id="q" placeholder="Rechercher un cours, une notion…" style="padding-left:38px"><span style="position:absolute;left:11px;top:10px;color:var(--muted)">${icon('search').replace('<svg', '<svg style="width:18px;height:18px"')}</span></div>
+  </header>
+  <figure class="subj-ban"><img src="${coverOf(subject)}" alt="" decoding="async"><span class="ai-dot"></span></figure>
+  <div class="search" style="margin-bottom:22px;max-width:520px">${icon('search')}<input type="search" id="q" placeholder="Chercher dans ${esc(shortName(subject))}…"></div>
+  <div id="body"></div>`
+  : `
+  <header class="page-head">
+    <div><h1>Cours<span class="dot-end">.</span></h1><div class="sub">${subjects.length} matières · ${courses.length} cours · ${courses.filter((c) => c.status === 'done').length} fiches prêtes</div></div>
+    <div class="cta"><button class="btn" id="new-subject">${icon('plus')} Matière</button><button class="btn primary" id="add">${icon('upload')} Ajouter des cours</button></div>
+  </header>
+  <div class="search" style="margin-bottom:28px;max-width:560px">${icon('search')}<input type="search" id="q" placeholder="Rechercher un cours, une notion…"></div>
   <div id="body"></div>`;
 
   $('#q', el).oninput = (e) => { q = e.target.value.trim().toLowerCase(); draw(); };
@@ -55,27 +58,31 @@ export async function render(el, [subjectId]) {
   draw();
 }
 
-function courseCard(c, subjects) {
+function courseRow(c, i, subjects, showSubject) {
   const s = subjectOf(subjects, c.subjectId);
-  return `<a class="card card-link course-card" href="#/c/${encodeURIComponent(c.id)}" style="border-left:5px solid ${s.color}">
-    <div class="small muted">${esc(s.name)}</div>
-    <h3 style="margin:0">${esc(c.title)}</h3>
-    <div class="summary">${esc(c.summary || (c.status === 'pending' ? 'Claude préparera la fiche, le quiz et les flashcards au prochain passage.' : ''))}</div>
-    <div class="meta">${statusBadge(c)}<span class="badge grey">${esc((c.ext || '').toUpperCase())}</span></div>
+  return `<a class="citem" style="--c:${s.color}" href="#/c/${encodeURIComponent(c.id)}">
+    <span class="n">${String(i + 1).padStart(2, '0')}</span>
+    <span><span class="t">${esc(c.title)}</span>${showSubject ? `<span class="small" style="display:block">${esc(s.name)}</span>` : ''}
+      <span class="s">${esc(c.summary || (c.status === 'pending' ? 'Claude préparera la fiche, le quiz et les flashcards au prochain passage.' : ''))}</span></span>
+    <span class="m">${statusBadge(c)}<span class="badge grey">${esc((c.ext || '').toUpperCase())}</span></span>
   </a>`;
 }
 
 export function editSubject(subject = null, courses = []) {
   let color = subject?.color || SUBJECT_COLORS[Math.floor(Math.random() * SUBJECT_COLORS.length)];
+  let cover = subject?.cover || '';
   modal({
     title: subject ? 'Modifier la matière' : 'Nouvelle matière',
     body: `<label class="field"><span>Nom</span><input type="text" id="s-name" value="${esc(subject?.name || '')}" placeholder="Ex. Mécanique des solides"></label>
+      <label class="field"><span>Nom court <small>(le grand mot en tête de page, ex. RDM)</small></span><input type="text" id="s-short" value="${esc(subject?.short || '')}" maxlength="14"></label>
       <label class="field"><span>UE / module <small>(facultatif)</small></span><input type="text" id="s-ue" value="${esc(subject?.ue || '')}"></label>
       <label class="field"><span>Enseignant·e <small>(facultatif)</small></span><input type="text" id="s-prof" value="${esc(subject?.prof || '')}"></label>
-      <div class="field"><span style="font-weight:600;font-size:.88rem">Couleur</span><div class="row" id="s-colors" style="margin-top:6px">${SUBJECT_COLORS.map((c) => `<button class="icon-btn" data-c="${c}" style="width:32px;height:32px;border-radius:50%;background:${c};outline:${c === color ? '3px solid var(--text)' : 'none'}"></button>`).join('')}</div></div>`,
+      <div class="field"><span style="font-weight:600;font-size:.88rem">Couleur</span><div class="row" id="s-colors" style="margin-top:6px">${SUBJECT_COLORS.map((c) => `<button class="icon-btn" data-c="${c}" style="width:32px;height:32px;border-radius:50%;background:${c};outline:${c === color ? '3px solid var(--ink)' : 'none'};outline-offset:2px"></button>`).join('')}</div></div>
+      <div class="field"><span style="font-weight:600;font-size:15px">Image</span><div class="cover-pick" id="s-cover"><button type="button" data-cv="" class="${cover ? '' : 'on'}" title="Automatique"><img src="${coverOf({ ...(subject || { id: 'x', name: '' }), cover: '' })}" alt="Automatique"></button>${COVERS.map((k) => `<button type="button" data-cv="${k}" class="${cover === k ? 'on' : ''}"><img loading="lazy" src="media/couvertures/${k}.webp" alt="${k}"></button>`).join('')}</div></div>`,
     onOpen: (m) => {
       $('#s-name', m).focus();
-      $('#s-colors', m).onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; color = b.dataset.c; m.querySelectorAll('[data-c]').forEach((x) => (x.style.outline = x.dataset.c === color ? '3px solid var(--text)' : 'none')); };
+      $('#s-colors', m).onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; color = b.dataset.c; m.querySelectorAll('[data-c]').forEach((x) => (x.style.outline = x.dataset.c === color ? '3px solid var(--ink)' : 'none')); };
+      $('#s-cover', m).onclick = (e) => { const b = e.target.closest('[data-cv]'); if (!b) return; cover = b.dataset.cv; m.querySelectorAll('[data-cv]').forEach((x) => x.classList.toggle('on', x === b)); };
     },
     actions: [
       ...(subject ? [{ label: icon('trash') + ' Supprimer', cls: 'ghost danger', onClick: async () => {
@@ -88,7 +95,7 @@ export function editSubject(subject = null, courses = []) {
       { label: 'Enregistrer', primary: true, onClick: async (m) => {
         const name = $('#s-name', m).value.trim();
         if (!name) { toast('Donne un nom à la matière', 'error'); return false; }
-        const data = { name, ue: $('#s-ue', m).value.trim(), prof: $('#s-prof', m).value.trim(), color };
+        const data = { name, short: $('#s-short', m).value.trim(), ue: $('#s-ue', m).value.trim(), prof: $('#s-prof', m).value.trim(), color, cover };
         await store.update(PATHS.subjects, (d) => {
           d.subjects ||= [];
           if (subject) Object.assign(d.subjects.find((s) => s.id === subject.id) || {}, data);
@@ -111,7 +118,7 @@ export function addCourses(subjects, presetSubject) {
       <input type="file" id="a-files" multiple accept="${ACCEPT}" hidden>
       <div id="a-list"></div>
       <label class="field" style="margin-top:14px"><span>Consigne pour Claude <small>(facultatif)</small></span><input type="text" id="a-note" placeholder="Ex. : insiste sur les méthodes de calcul, le contrôle est un QCM"></label>
-      <div class="notice violet small">${icon('sparkle')}<div>Les fichiers sont envoyés dans ton dépôt privé. Claude prépare la fiche, le résumé, le quiz et les flashcards au prochain passage de la tâche planifiée.</div></div>
+      <div class="notice violet small" style="margin-top:14px">${icon('sparkle')}<div>Les fichiers sont envoyés dans ton dépôt privé. Claude prépare la fiche, le résumé, le quiz et les flashcards au prochain passage de la tâche planifiée.</div></div>
       <div id="a-prog" class="hidden"><div class="progress"><div style="width:0%"></div></div><div class="small muted" id="a-prog-t" style="margin-top:6px"></div></div>`,
     onOpen: (el) => {
       const dz = $('#dz', el), input = $('#a-files', el);

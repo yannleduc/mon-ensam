@@ -28,7 +28,7 @@ export async function render(el, [subjectId]) {
   const cards = dueCards(courses, progress, studies, { subjectId });
   const s = subjectId ? subjectOf(subjects, subjectId) : null;
   el.innerHTML = `<div class="crumbs"><a href="#/revision">Révisions</a> /</div>
-    <div class="page-head"><div><h1>Flashcards${s ? ' · ' + esc(s.name) : ''}</h1><div class="sub">${cards.length} carte(s) à revoir aujourd’hui — répétition espacée</div></div></div>
+    <div class="page-head"><div><h1>Cartes<span class="dot-end">.</span></h1><div class="sub">${s ? esc(s.name) + ' · ' : ''}${cards.length} carte(s) à revoir aujourd’hui, en répétition espacée</div></div></div>
     <div id="fc"></div>`;
   runCards($('#fc', el), cards.slice(0, 60), { subjects });
 }
@@ -39,7 +39,7 @@ export function runCards(container, cards, { all = false, subjects = [] } = {}) 
   const total = queue.length;
   const show = () => {
     if (!queue.length) {
-      container.innerHTML = `<div class="card empty" style="max-width:620px;margin:0 auto">${icon('check')}<h2>Séance terminée</h2><p>${total ? `${known} / ${total} cartes sues du premier coup.` : 'Aucune carte à revoir pour le moment.'}</p>
+      container.innerHTML = `<div class="empty" style="max-width:620px;margin:0 auto">${icon('check')}<h2>Séance terminée</h2><p>${total ? `${known} / ${total} cartes sues du premier coup.` : 'Aucune carte à revoir pour le moment.'}</p>
         <div class="row" style="justify-content:center">${all && total ? '<button class="btn" id="again">Recommencer</button>' : ''}<a class="btn primary" href="#/revision">Retour aux révisions</a></div></div>`;
       $('#again', container)?.addEventListener('click', () => runCards(container, cards, { all, subjects }));
       if (total) queueProgress((p) => { p.sessions ||= []; p.sessions.push({ type: 'cartes', date: new Date().toISOString(), n: total, score: known }); });

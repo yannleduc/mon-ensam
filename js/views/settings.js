@@ -15,7 +15,7 @@ const TEMPLATE_FILES = [
 export async function render(el) {
   const mode = settings.get('mode', 'none');
   el.innerHTML = `
-  <div class="page-head"><div><h1>Réglages</h1><div class="sub">Stockage, emploi du temps, profil et apparence</div></div></div>
+  <div class="page-head"><div><h1>Réglages<span class="dot-end">.</span></h1><div class="sub">Stockage, emploi du temps, profil et apparence</div></div></div>
   <div class="grid cols-2">
     <section class="card">
       <h2>${icon('cloud')} Stockage et synchro</h2>

@@ -35,7 +35,7 @@ export async function render(el) {
 
     el.innerHTML = `
     <div class="page-head">
-      <div><h1>Agenda</h1><div class="sub">Contrôles, rendus et tout ce qui arrive</div></div>
+      <div><h1>Agenda<span class="dot-end">.</span></h1><div class="sub">Contrôles, rendus et tout ce qui arrive</div></div>
       <div class="row">
         <button class="btn" id="extract">${icon('sparkle')} Extraire d’un texte</button>
         <button class="btn" id="export" title="Exporter vers Calendrier">${icon('download')} .ics</button>
@@ -48,10 +48,10 @@ export async function render(el) {
           <div class="seg" id="filters">${[['avenir', 'À venir'], ['faits', 'Passés / faits'], ['tout', 'Tout']].map(([k, l]) => `<button data-f="${k}" class="${filter === k && !selDay ? 'active' : ''}">${l}</button>`).join('')}</div>
           ${selDay ? `<button class="btn sm ghost" id="clear-day">${icon('x')} ${esc(fmt.dm(selDay + 'T12:00'))}</button>` : ''}
         </div>
-        ${groups.length ? groups.map((g) => `<h3 style="margin:16px 0 8px">${esc(g.g)}</h3>${g.items.map(item).join('')}`).join('')
-          : `<div class="card empty">${icon('flag')}<p>${filter === 'avenir' && !selDay ? 'Rien à l’horizon. Ajoute tes contrôles et rendus dès que tu les connais.' : 'Rien ici.'}</p></div>`}
+        ${groups.length ? groups.map((g) => `<h3 class="ag-group">${esc(g.g)}</h3>${g.items.map(item).join('')}`).join('')
+          : `<div class="empty">${icon('flag')}<p>${filter === 'avenir' && !selDay ? 'Rien à l’horizon. Ajoute tes contrôles et rendus dès que tu les connais.' : 'Rien ici.'}</p></div>`}
       </div>
-      <aside class="card">${monthGrid(all)}</aside>
+      <aside>${monthGrid(all)}</aside>
     </div>`;
 
     $('#filters', el).onclick = (e) => { const b = e.target.closest('[data-f]'); if (b) { filter = b.dataset.f; selDay = null; draw(); } };
@@ -78,11 +78,11 @@ export async function render(el) {
     const n = daysUntil(e.date);
     const s = e.subjectId ? subjectOf(subjects, e.subjectId) : null;
     return `<div class="ag-item type-${e.type || 'autre'} ${e.done ? 'done' : ''}" data-id="${esc(e.id)}">
-      ${e.fromEdt ? '' : `<input type="checkbox" data-done ${e.done ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--violet)" aria-label="Fait">`}
+      ${e.fromEdt ? '<span></span>' : `<input type="checkbox" data-done ${e.done ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--violet)" aria-label="Fait">`}
       <div class="countdown ${e.done ? '' : countdownCls(n)}">${countdownLabel(n)}</div>
       <div class="grow">
         <div class="title">${esc(e.title)}</div>
-        <div class="small muted">${esc(fmt.short(e.date + 'T12:00'))}${e.time ? ' · ' + esc(e.time) : ''} · ${esc(TYPES[e.type] || 'Autre')}${s ? ` · <span class="dot" style="background:${s.color};width:8px;height:8px"></span> ${esc(s.name)}` : ''}${e.fromEdt ? ' · <span class="badge grey">détecté dans l’EDT</span>' : ''}${e.source === 'claude' ? ' · <span class="badge y">trouvé par Claude, à vérifier</span>' : ''}</div>
+        <div class="small"><span class="type"></span>${esc(fmt.short(e.date + 'T12:00'))}${e.time ? ' · ' + esc(e.time) : ''} · ${esc(TYPES[e.type] || 'Autre')}${s ? ` · <span class="dot" style="background:${s.color};width:8px;height:8px"></span> ${esc(s.name)}` : ''}${e.fromEdt ? ' · <span class="badge grey">détecté dans l’EDT</span>' : ''}${e.source === 'claude' ? ' · <span class="badge y">trouvé par Claude, à vérifier</span>' : ''}</div>
         ${e.notes ? `<div class="small" style="margin-top:3px">${esc(e.notes)}</div>` : ''}
       </div>
       ${e.fromEdt ? `<button class="btn sm" data-adopt>${icon('plus')} Suivre</button>` : `<button class="icon-btn" data-edit aria-label="Modifier">${icon('edit')}</button>`}

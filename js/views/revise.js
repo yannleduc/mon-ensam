@@ -27,7 +27,7 @@ export async function render(el) {
   const sessions = (progress.sessions || []).slice(-8).reverse();
 
   el.innerHTML = `
-  <div class="page-head"><div><h1>Révisions</h1><div class="sub">${ready.length} cours prêts · ${Object.keys(progress.cards || {}).length} flashcards suivies</div></div></div>
+  <div class="page-head"><div><h1>Révisions<span class="dot-end">.</span></h1><div class="sub">${ready.length} cours prêts · ${Object.keys(progress.cards || {}).length} flashcards suivies</div></div></div>
   <div class="grid cols-2">
     <section class="card">
       <h2>${icon('cards')} Flashcards du jour</h2>

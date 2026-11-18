@@ -17,7 +17,7 @@ export async function render(el, [weekParam]) {
     const nDays = hasWeekend ? 7 : 5;
     el.innerHTML = `
     <div class="page-head">
-      <div><h1>Emploi du temps</h1><div class="sub">Semaine du ${esc(fmt.dm(monday))} au ${esc(fmt.dm(new Date(+monday + (nDays - 1) * DAY)))}${edt.updatedAt ? ` · mis à jour ${esc(fmt.rel(edt.updatedAt))}` : ''}</div></div>
+      <div><h1>Emploi du temps<span class="dot-end">.</span></h1><div class="sub">Semaine du ${esc(fmt.dm(monday))} au ${esc(fmt.dm(new Date(+monday + (nDays - 1) * DAY)))}${edt.updatedAt ? ` · mis à jour ${esc(fmt.rel(edt.updatedAt))}` : ''}</div></div>
       <div class="row">
         <div class="seg"><button data-v="week" class="${view === 'week' ? 'active' : ''}">Semaine</button><button data-v="list" class="${view === 'list' ? 'active' : ''}">Liste</button></div>
         <button class="btn sm" id="prev" aria-label="Semaine précédente">${icon('chevL')}</button>
@@ -27,7 +27,7 @@ export async function render(el, [weekParam]) {
       </div>
     </div>
     ${edt.error ? `<div class="notice">${icon('info')}<div>${esc(edt.error)}</div></div>` : ''}
-    ${edt.empty ? `<div class="card empty">${icon('calendar')}<p>Pas encore d’emploi du temps.</p><a class="btn primary" href="#/reglages">Ajouter le lien ICS</a></div>` : `<div id="cal"></div>`}`;
+    ${edt.empty ? `<div class="empty-state"><span class="ghost-word">EDT</span><div><strong>Pas encore d’emploi du temps</strong>Colle ton lien ICS dans les réglages.<div style="margin-top:12px"><a class="btn primary" href="#/reglages">Ajouter le lien ICS</a></div></div></div>` : `<div id="cal"></div>`}`;
     el.querySelector('.seg').onclick = (e) => { const b = e.target.closest('[data-v]'); if (b) { view = b.dataset.v; settings.set('edtView', view); draw(); } };
     $('#prev', el).onclick = () => { monday = new Date(+monday - 7 * DAY); draw(); };
     $('#next', el).onclick = () => { monday = new Date(+monday + 7 * DAY); draw(); };
@@ -76,8 +76,8 @@ function weekGrid(cal, monday, nDays, evs) {
       const top = ((e.start.getHours() + e.start.getMinutes() / 60) - h0) * HOUR;
       const h = Math.max(22, ((e.end - e.start) / 3600000) * HOUR - 2);
       const idx = evs.indexOf(e);
-      html += `<div class="ev" data-ev="${idx}" style="top:${top}px;height:${h}px;left:calc(${(c / n) * 100}% + 2px);width:calc(${100 / n}% - 4px);--evc:${e.cls.color};--evbg:color-mix(in srgb, ${e.cls.color} 16%, var(--surface))">
-        <b>${esc(e.title)}</b>${fmt.time(e.start)}–${fmt.time(e.end)}${e.location && h > 50 ? `<br>${esc(e.location)}` : ''}</div>`;
+      html += `<div class="ev" data-ev="${idx}" style="top:${top}px;height:${h}px;left:calc(${(c / n) * 100}% + 2px);width:calc(${100 / n}% - 4px);--evc:${e.cls.color};--evbg:color-mix(in srgb, ${e.cls.color} 13%, var(--paper))">
+        <b>${esc(e.title)}</b><span class="tm">${fmt.time(e.start)}–${fmt.time(e.end)}</span>${e.location && h > 54 ? `<br>${esc(e.location)}` : ''}</div>`;
     });
     if (ymd(d) === today) {
       const now = new Date(), y = ((now.getHours() + now.getMinutes() / 60) - h0) * HOUR;
@@ -92,11 +92,11 @@ function weekGrid(cal, monday, nDays, evs) {
 }
 
 function listView(cal, monday, evs) {
-  if (!evs.length) { cal.innerHTML = `<div class="card empty">Aucun cours cette semaine.</div>`; return; }
+  if (!evs.length) { cal.innerHTML = `<div class="empty">Aucun cours cette semaine.</div>`; return; }
   const groups = {};
   evs.forEach((e, i) => { (groups[ymd(e.start)] ||= []).push(i); });
   const now = new Date();
-  cal.innerHTML = Object.entries(groups).map(([day, idx]) => `<div class="day-group"><h3>${esc(fmt.day(day + 'T12:00'))}</h3><div class="card" style="padding:6px 14px">
+  cal.innerHTML = Object.entries(groups).map(([day, idx]) => `<div class="day-group"><h3>${esc(fmt.day(day + 'T12:00'))}</h3><div class="list">
     ${idx.map((i) => { const e = evs[i]; return `<div class="class-item ${e.start <= now && e.end > now ? 'now' : ''}" data-ev="${i}" style="cursor:pointer">
       <div class="time">${e.allDay ? 'Journée' : `${fmt.time(e.start)}<br><span class="muted small">${fmt.time(e.end)}</span>`}</div>
       <div class="bar" style="background:${e.cls.color}"></div>

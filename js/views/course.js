@@ -1,5 +1,5 @@
 import { $, esc, icon, toast, modal, md, mdInline, fmt, fileSize, confirmDialog } from '../ui.js';
-import { store, getAll, subjectOf, PATHS, uid } from '../store.js';
+import { store, getAll, subjectOf, PATHS, uid, shortName } from '../store.js';
 import { statusBadge } from './home.js';
 import { runQuiz } from './quiz.js';
 import { runCards } from './flashcards.js';
@@ -22,30 +22,30 @@ export async function render(el, [id, tabParam]) {
   }
   const tabs = [
     ['fiche', 'Fiche', 'file'], ['doc', 'Document', 'book'],
-    ['quiz', `Quiz${study?.quiz?.length ? ` (${study.quiz.length})` : ''}`, 'brain'],
-    ['cartes', `Flashcards${study?.flashcards?.length ? ` (${study.flashcards.length})` : ''}`, 'cards'],
-    ['claude', 'Demander à Claude', 'chat'],
+    ['quiz', 'Quiz', 'brain'],
+    ['cartes', 'Cartes', 'cards'],
+    ['claude', 'Claude', 'chat'],
   ];
   let tab = tabParam || (c.status === 'done' ? 'fiche' : 'doc');
 
   el.innerHTML = `
-  <div class="crumbs"><a href="#/cours">Cours</a> / <a href="#/cours/${encodeURIComponent(s.id)}">${esc(s.name)}</a></div>
-  <div class="course-head">
-    <div class="grow"><h1 style="margin-bottom:6px">${esc(c.title)}</h1>
-      <div class="row small muted">${statusBadge(c)} <span>${esc(c.fileName)} · ${fileSize(c.size || 0)}</span> <span>ajouté ${fmt.rel(c.addedAt)}</span>${c.processedAt ? `<span>· fiche du ${new Date(c.processedAt).toLocaleDateString('fr-FR')}</span>` : ''}</div>
-      ${c.summary ? `<p style="margin:10px 0 0;max-width:820px">${esc(c.summary)}</p>` : ''}
-      ${c.keywords?.length ? `<div class="row" style="margin-top:8px">${c.keywords.map((k) => `<span class="badge">${esc(k)}</span>`).join('')}</div>` : ''}
+  <nav class="crumbs"><a href="#/cours">Cours</a><span>/</span><a href="#/cours/${encodeURIComponent(s.id)}">${esc(s.name)}</a></nav>
+  <header class="course-head">
+    <p class="eyebrow" style="color:${s.color}">${esc(shortName(s))}</p>
+    <h1>${esc(c.title)}</h1>
+    ${c.summary ? `<p class="lead">${esc(c.summary)}</p>` : ''}
+    <div class="course-meta">${statusBadge(c)}<span>${esc(c.fileName)} · ${fileSize(c.size || 0)}</span><span>ajouté ${fmt.rel(c.addedAt)}</span>${c.processedAt && c.status === 'done' ? `<span>fiche du ${new Date(c.processedAt).toLocaleDateString('fr-FR')}</span>` : ''}</div>
+    ${c.keywords?.length ? `<div class="row" style="gap:6px">${c.keywords.map((k) => `<span class="chip">${esc(k)}</span>`).join('')}</div>` : ''}
+    <div class="cta" style="margin-top:4px">
+      <button class="btn sm" id="regen">${icon('refresh')} ${c.status === 'done' ? 'Regénérer' : 'Consigne'}</button>
+      <button class="btn sm ghost" id="edit">${icon('edit')} Modifier</button>
+      <button class="btn sm ghost" id="dl">${icon('download')} Original</button>
+      <button class="btn sm danger" id="del" aria-label="Supprimer">${icon('trash')}</button>
     </div>
-    <div class="row">
-      <button class="btn" id="regen">${icon('refresh')} ${c.status === 'done' ? 'Regénérer' : 'Consigne'}</button>
-      <button class="btn" id="edit">${icon('edit')}</button>
-      <button class="btn" id="dl" title="Télécharger l’original">${icon('download')}</button>
-      <button class="btn danger" id="del" title="Supprimer">${icon('trash')}</button>
-    </div>
-  </div>
-  ${c.status === 'pending' ? `<div class="notice">${icon('clock')}<div><b>En attente de Claude.</b> La fiche, le quiz et les flashcards seront prêts après le prochain passage de la tâche planifiée. Pour aller plus vite, dis simplement à Claude « traite mes cours ».${c.note ? `<div class="small muted">Consigne : ${esc(c.note)}</div>` : ''}</div></div>` : ''}
-  ${c.status === 'error' ? `<div class="notice">${icon('info')}<div><b>Le traitement a échoué.</b> ${esc(c.error || '')}<br><button class="btn sm" id="retry" style="margin-top:6px">Relancer</button></div></div>` : ''}
-  <div class="tabs" id="tabs">${tabs.map(([k, l]) => `<button data-t="${k}">${l}</button>`).join('')}</div>
+  </header>
+  ${c.status === 'pending' ? `<div class="notice">${icon('clock')}<div><b>En attente de Claude.</b> La fiche, le quiz et les flashcards arrivent au prochain passage de la tâche planifiée (toutes les heures en journée). Pour aller plus vite, dis à Claude « traite mes cours ».${c.note ? `<div class="small">Consigne : ${esc(c.note)}</div>` : ''}</div></div>` : ''}
+  ${c.status === 'error' ? `<div class="notice">${icon('info')}<div><b>Le traitement a échoué.</b> ${esc(c.error || '')}<br><button class="btn sm" id="retry" style="margin-top:8px">Relancer</button></div></div>` : ''}
+  <div class="modebar"><div class="tabs" id="tabs">${tabs.map(([k, l]) => `<button data-t="${k}">${l}</button>`).join('')}</div></div>
   <div id="pane"></div>`;
 
   const pane = $('#pane', el);
@@ -57,12 +57,12 @@ export async function render(el, [id, tabParam]) {
     history.replaceState(null, '', `#/c/${encodeURIComponent(c.id)}/${t}`);
     pane.innerHTML = '';
     if (t === 'fiche') {
-      pane.innerHTML = fiche ? `<article class="card md">${md(fiche)}</article>${study ? extras(study) : ''}` : waiting(c);
+      pane.innerHTML = fiche ? `<article class="md">${md(fiche)}</article>${study ? extras(study) : ''}` : waiting(c);
     } else if (t === 'doc') {
       cleanup = await showDocument(pane, c, base);
     } else if (t === 'quiz') {
       if (!study?.quiz?.length) { pane.innerHTML = waiting(c); return; }
-      pane.innerHTML = `<div id="qz"></div>${study.questionsOuvertes?.length ? `<section class="card" style="margin-top:22px;max-width:760px;margin-inline:auto"><h2>Questions ouvertes</h2>${study.questionsOuvertes.map((q, i) => `
+      pane.innerHTML = `<div id="qz"></div>${study.questionsOuvertes?.length ? `<section class="sec" style="max-width:760px;margin-inline:auto"><div class="sec-head"><h2>Questions ouvertes</h2></div>${study.questionsOuvertes.map((q, i) => `
         <div class="qa"><div class="q">${i + 1}. ${mdInline(q.question)}</div><details><summary class="small">Voir une réponse attendue</summary><div class="md" style="margin-top:8px">${md(q.reponse)}</div></details></div>`).join('')}</section>` : ''}`;
       runQuiz($('#qz', pane), study.quiz.map((q) => ({ ...q, courseId: c.id })), { title: c.title });
     } else if (t === 'cartes') {
@@ -118,14 +118,14 @@ async function setPending(c, note) {
 }
 
 function waiting(c) {
-  return `<div class="card empty">${icon('clock')}<p>${c.status === 'done' ? 'Contenu absent de la fiche.' : 'Claude n’a pas encore traité ce cours.'}</p><a class="btn" href="#/c/${encodeURIComponent(c.id)}/doc">Voir le document</a></div>`;
+  return `<div class="empty-state"><span class="ghost-word">…</span><div><strong>${c.status === 'done' ? 'Rien ici pour ce cours' : 'Claude n’a pas encore traité ce cours'}</strong>En attendant, le document original est consultable.<div style="margin-top:12px"><a class="btn" href="#/c/${encodeURIComponent(c.id)}/doc">Voir le document</a></div></div></div>`;
 }
 
 function extras(s) {
   const parts = [];
-  if (s.formules?.length) parts.push(`<section class="card md"><h2>Formulaire</h2><table><thead><tr><th>Nom</th><th>Formule</th><th>À retenir</th></tr></thead><tbody>${s.formules.map((f) => `<tr><td>${mdInline(f.nom)}</td><td>${mdInline('$' + f.latex.replace(/^\$+|\$+$/g, '') + '$')}</td><td>${mdInline(f.explication || '')}</td></tr>`).join('')}</tbody></table></section>`);
-  if (s.notions?.length) parts.push(`<section class="card md"><h2>Lexique</h2><dl>${s.notions.map((n) => `<dt><b>${mdInline(n.terme)}</b></dt><dd style="margin:2px 0 10px 0">${mdInline(n.definition)}</dd>`).join('')}</dl></section>`);
-  return parts.length ? `<div class="grid cols-2" style="margin-top:16px">${parts.join('')}</div>` : '';
+  if (s.formules?.length) parts.push(`<section class="md"><h2>Formulaire</h2><table><thead><tr><th>Nom</th><th>Formule</th><th>À retenir</th></tr></thead><tbody>${s.formules.map((f) => `<tr><td>${mdInline(f.nom)}</td><td>${mdInline('$' + f.latex.replace(/^\$+|\$+$/g, '') + '$')}</td><td>${mdInline(f.explication || '')}</td></tr>`).join('')}</tbody></table></section>`);
+  if (s.notions?.length) parts.push(`<section class="md"><h2>Lexique</h2><dl>${s.notions.map((n) => `<dt><b>${mdInline(n.terme)}</b></dt><dd style="margin:2px 0 10px 0">${mdInline(n.definition)}</dd>`).join('')}</dl></section>`);
+  return parts.length ? `<div class="grid cols-2" style="margin-top:56px">${parts.join('')}</div>` : '';
 }
 
 async function showDocument(pane, c, base) {
@@ -185,8 +185,8 @@ async function askClaude(pane, c, s, fiche) {
   const mine = reqs.filter((r) => r.type === 'question' && r.params?.courseId === c.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   pane.innerHTML = `
   <div class="grid cols-2">
-    <section class="card">
-      <h2>${icon('chat')} Poser une question</h2>
+    <section>
+      <div class="sec-head"><h2>Poser une question</h2></div>
       <textarea id="ask-q" placeholder="Ex. : je ne comprends pas pourquoi on néglige l’effort tranchant ici, tu peux m’expliquer avec un exemple ?"></textarea>
       <div class="row" style="margin-top:10px">
         <button class="btn primary" id="ask-now">${icon('external')} Tout de suite dans Claude</button>
@@ -194,8 +194,8 @@ async function askClaude(pane, c, s, fiche) {
       </div>
       <p class="small muted" style="margin-top:12px"><b>Tout de suite</b> ouvre une conversation Claude avec la fiche du cours déjà collée. <b>Réponse rangée ici</b> envoie la question à la tâche planifiée : Claude répond avec le PDF complet sous les yeux et la réponse reste attachée au cours.</p>
     </section>
-    <section class="card">
-      <h2>Réponses de Claude</h2>
+    <section>
+      <div class="sec-head"><h2>Réponses de Claude</h2></div>
       ${mine.length ? mine.map((r) => `<div class="qa"><div class="q">${esc(r.params.question)}</div>
         ${r.status === 'done' ? `<div class="md">${md(r.result || '')}</div>` : `<span class="badge y">En attente</span>`}
         <div class="small muted" style="margin-top:6px">${fmt.rel(r.createdAt)}</div></div>`).join('') : '<div class="empty small">Pas encore de question sur ce cours.</div>'}

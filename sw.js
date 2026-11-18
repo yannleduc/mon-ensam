@@ -1,5 +1,5 @@
 // Service worker : l'appli s'ouvre même hors-ligne. Les données passent par l'API GitHub (jamais mises en cache ici).
-const VERSION = 'mon-ensam-v1';
+const VERSION = 'mon-ensam-v2';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/app.js', 'js/ui.js', 'js/store.js', 'js/github.js', 'js/db.js', 'js/edt.js', 'js/demo.js',
@@ -7,6 +7,10 @@ const SHELL = [
   'js/views/revise.js', 'js/views/edt.js', 'js/views/agenda.js', 'js/views/settings.js',
   'vendor/marked.esm.js', 'vendor/purify.es.mjs', 'vendor/ical.min.js', 'vendor/katex/katex.mjs', 'vendor/katex/katex.min.css',
   'icons/icon-192.png', 'icons/apple-touch-icon.png', 'icons/favicon.png',
+  'media/couvertures/accueil.webp',
+  'vendor/fonts/zilla-slab-latin-600-normal.woff2', 'vendor/fonts/zilla-slab-latin-700-normal.woff2',
+  'vendor/fonts/source-sans-3-latin-400-normal.woff2', 'vendor/fonts/source-sans-3-latin-600-normal.woff2', 'vendor/fonts/source-sans-3-latin-700-normal.woff2',
+  'vendor/fonts/ibm-plex-mono-latin-400-normal.woff2', 'vendor/fonts/ibm-plex-mono-latin-500-normal.woff2',
 ];
 
 self.addEventListener('install', (e) => {

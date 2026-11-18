@@ -10,9 +10,9 @@ export async function render(el, [id]) {
   const { subjects, courses } = await getAll();
   const names = (qz.courseIds || []).map((cid) => courses.find((c) => c.id === cid)?.title).filter(Boolean);
   el.innerHTML = `<div class="crumbs"><a href="#/revision">Révisions</a> /</div>
-    <div class="page-head"><div><h1>${esc(qz.titre || 'Quiz')}</h1><div class="sub">${esc(names.join(' · '))}</div></div></div>
+    <div class="page-head"><div><h1>${esc(qz.titre || 'Quiz')}<span class="dot-end">.</span></h1><div class="sub">${esc(names.join(' · '))}</div></div></div>
     <div id="qz"></div>
-    ${qz.questionsOuvertes?.length ? `<section class="card" style="margin-top:22px;max-width:760px;margin-inline:auto"><h2>Questions ouvertes</h2>${qz.questionsOuvertes.map((q, i) => `<div class="qa"><div class="q">${i + 1}. ${mdInline(q.question)}</div><details><summary class="small">Voir une réponse attendue</summary><div class="md">${md(q.reponse)}</div></details></div>`).join('')}</section>` : ''}`;
+    ${qz.questionsOuvertes?.length ? `<section class="sec" style="max-width:760px;margin-inline:auto"><div class="sec-head"><h2>Questions ouvertes</h2></div>${qz.questionsOuvertes.map((q, i) => `<div class="qa"><div class="q">${i + 1}. ${mdInline(q.question)}</div><details><summary class="small">Voir une réponse attendue</summary><div class="md">${md(q.reponse)}</div></details></div>`).join('')}</section>` : ''}`;
   runQuiz($('#qz', el), qz.quiz || [], { title: qz.titre });
 }
 
@@ -56,7 +56,7 @@ export function runQuiz(container, questions, { title = 'Quiz', onDone } = {}) {
     const courseIds = [...new Set(qs.map((q) => q.courseId).filter(Boolean))];
     queueProgress((p) => { p.sessions ||= []; p.sessions.push({ type: 'quiz', date: new Date().toISOString(), n: qs.length, score, courseIds, title, secs: Math.round((Date.now() - start) / 1000) }); });
     const R = 64, C = 2 * Math.PI * R;
-    container.innerHTML = `<div class="quiz card" style="text-align:center">
+    container.innerHTML = `<div class="quiz" style="text-align:center">
       <svg class="score-ring" viewBox="0 0 160 160"><circle cx="80" cy="80" r="${R}" fill="none" stroke="var(--violet-l)" stroke-width="14"/>
         <circle cx="80" cy="80" r="${R}" fill="none" stroke="${pct >= 75 ? 'var(--ok)' : pct >= 50 ? 'var(--jaune)' : 'var(--danger)'}" stroke-width="14" stroke-linecap="round" stroke-dasharray="${(C * pct) / 100} ${C}" transform="rotate(-90 80 80)"/>
         <text x="80" y="88" text-anchor="middle" font-size="30" font-weight="800" fill="currentColor">${pct}%</text></svg>

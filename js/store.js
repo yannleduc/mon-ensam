@@ -186,3 +186,27 @@ export async function flushProgress() {
 }
 addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushProgress(); });
 addEventListener('pagehide', () => flushProgress());
+
+/* Couvertures des matières (visuels du portfolio, style commun) */
+export const COVERS = ['mmc', 'rdm', 'ef', 'mati', 'repi', 'metrologie', 'copi', 'sgei', 'redaction', 'orei', 'engrenages', 'usinage', 'treillis', 'verin', 'echangeur', 'pompe', 'batiment', 'beton', 'code', 'equipe', 'assemblage', 'tole', 'impression', 'croquis', 'cao', 'essais', 'poutre', 'pla', 'brevets'];
+const COVER_RULES = [
+  [/mmc|milieux continus|m[ée]canique des solides/, 'mmc'], [/r[ée]sistance|\brdm\b/, 'rdm'], [/[ée]l[ée]ments? finis|\bef\b|mef/, 'ef'],
+  [/mati|mat[ée]riau/, 'mati'], [/repi|proc[ée]d|sp[ée]cif|fabrication/, 'repi'], [/copi|conception|innov|valeur/, 'copi'],
+  [/sgei|manag|commun|gestion/, 'sgei'], [/anglais|english|langue/, 'redaction'], [/orei|organisation|industri/, 'orei'],
+  [/thermo|fluide/, 'echangeur'], [/math|analyse|algèbre/, 'croquis'], [/[ée]lec|automat|info|program/, 'code'], [/cao|solidworks|catia/, 'cao'],
+];
+export function coverOf(s) {
+  if (!s) return 'media/couvertures/croquis.webp';
+  if (s.cover) return `media/couvertures/${s.cover}.webp`;
+  const t = `${s.id} ${s.name} ${s.ue || ''}`.toLowerCase();
+  const hit = COVER_RULES.find(([re]) => re.test(t));
+  const k = hit ? hit[1] : COVERS[parseInt(hash(s.id), 36) % COVERS.length];
+  return `media/couvertures/${k}.webp`;
+}
+export function shortName(s) {
+  if (s?.short) return s.short;
+  const n = s?.name || '';
+  const [head, tail] = n.split(' — ');
+  if (tail && head.length <= 6) return head;
+  return n.length <= 14 ? n : n.split(' ')[0];
+}
